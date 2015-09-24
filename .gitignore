@@ -1,0 +1,7 @@
+*.pyc
+.rope*
+*~
+\#*
+NOTES
+legacy/*
+local.py
