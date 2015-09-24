@@ -1,10 +1,12 @@
 from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile
-from gambit import read_game
+from gambit import Game
+read_game = Game.read_game
 import os.path
 dirname=os.path.dirname(__file__)
 
-travellers_dilemma_low=read_game(dirname+'/travellers_dilemma_low.agg')
-travellers_dilemma_high=read_game(dirname+'/travellers_dilemma_high.agg')
+#TODO switch back to AGGs
+travellers_dilemma_low=read_game(dirname+'/travellers_dilemma_low.nfg')
+travellers_dilemma_high=read_game(dirname+'/travellers_dilemma_high.nfg')
 
 # Add back metadata that doesn't persist through the file format
 travellers_dilemma_low.title = "bogota.data.cn_goeree2001ten.travellers_dilemma_low"

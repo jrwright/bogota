@@ -14,7 +14,7 @@ def normalize(ps):
     probabilities will be normalized.
     """
     if 'game' in dir(ps):
-        new_p = ps.game.mixed_profile()
+        new_p = ps.game.mixed_strategy_profile()
         for pl in ps.game.players:
             total = sum(ps[pl])
             if total <= 0.0:
@@ -45,7 +45,7 @@ def proportionally_mix_profiles(weights, profiles):
     If ``weights`` sum to 0, then the profiles will be mixed over uniformly.
     """
     denom=sum(weights[0:len(profiles)])
-    new_profile = profiles[0].game.mixed_profile()
+    new_profile = profiles[0].game.mixed_strategy_profile()
     if denom > 0:
         for (j, ps) in enumerate(apply(zip, profiles)):
             new_profile[j]=sum([w * x / denom for (w, x) in zip(weights, ps)])
@@ -104,7 +104,7 @@ def action_profiles(game, excludePlayer=None, reuseProfile=None, maxPlayer=None,
         maxPlayer = len(game.players)-1
     if maxPlayer < 0:
         if (reuseProfile is None) or (not reuseProfile):
-            yield game.mixed_profile()
+            yield game.mixed_strategy_profile()
         else:
             yield reuseProfile
     elif excludePlayer == maxPlayer or excludePlayer == game.players[maxPlayer]:
@@ -151,7 +151,7 @@ def make_profile(game, profile_probabilities):
     """
     Construct a profile for 'game' from 'profile_probabilities'.
     """
-    p = game.mixed_profile()
+    p = game.mixed_strategy_profile()
     if isinstance(profile_probabilities, Number):
         for i in xrange(len(p)):
             p[i] = profile_probabilities

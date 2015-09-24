@@ -61,7 +61,7 @@ class DataPool(object):
         Return the log likelihood of this dataset according to a prediction that
         agents uniformly randomize over their actions.  (For normalization)
         """
-        return self.log_likelihood(lambda g: g.mixed_profile())
+        return self.log_likelihood(lambda g: g.mixed_strategy_profile())
 
     def __iter__(self):
         return self._weighted_profiles.__iter__()
@@ -427,7 +427,7 @@ def make_original(normalized_game, original_filename):
     """
     global original_games
     assert len(normalized_game.title) > 0
-    g = gambit.read_game(original_filename)
+    g = gambit.Game.read_game(original_filename)
     if normalized_game.title in original_games:
         assert repr(original_games[normalized_game.title]) == repr(g)
     else:
@@ -483,7 +483,7 @@ class AveragingPool(DataPool):
         Return the log likelihood of this dataset according to a prediction that
         agents uniformly randomize over their actions.  (For normalization)
         """
-        return self.log_likelihood(lambda g: [g.mixed_profile()])
+        return self.log_likelihood(lambda g: [g.mixed_strategy_profile()])
 
 
 class PeekabooPool(DataPool):
@@ -517,4 +517,4 @@ class PeekabooPool(DataPool):
         Return the log likelihood of this dataset according to a prediction that
         agents uniformly randomize over their actions.  (For normalization)
         """
-        return self.log_likelihood(lambda g, prediction_cache: g.mixed_profile())
+        return self.log_likelihood(lambda g, prediction_cache: g.mixed_strategy_profile())

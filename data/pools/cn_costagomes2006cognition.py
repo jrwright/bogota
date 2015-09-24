@@ -1,6 +1,7 @@
 from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile
 from bogota.traceset import TraceSet
-from gambit import read_game
+from gambit import Game
+read_game = Game.read_game
 import os.path
 dirname=os.path.dirname(__file__)
 

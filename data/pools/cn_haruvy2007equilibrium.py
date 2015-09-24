@@ -1,5 +1,6 @@
 from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile
-from gambit import read_game
+from gambit import Game
+read_game = Game.read_game
 import os.path
 dirname=os.path.dirname(__file__)
 hs07_1=read_game(dirname+'/hs07_1.nfg')
