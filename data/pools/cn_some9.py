@@ -57,9 +57,8 @@ make_original(cn_cgcb9a, dirname+'/cgcb9a.nfg')
 cn_cgcb9b=read_game(dirname+'/cn_cgcb9b.nfg')
 make_original(cn_cgcb9b, dirname+'/cgcb9b.nfg')
 
-#TODO figure out why AGG versions aren't loading
-travellers_dilemma_low=read_game(dirname+'/travellers_dilemma_low.nfg')
-travellers_dilemma_high=read_game(dirname+'/travellers_dilemma_high.nfg')
+travellers_dilemma_low=read_game(dirname+'/travellers_dilemma_low.agg')
+travellers_dilemma_high=read_game(dirname+'/travellers_dilemma_high.agg')
 
 # Add back metadata that doesn't persist through the file format
 travellers_dilemma_low.title = "bogota.data.cn_goeree2001ten.travellers_dilemma_low"
