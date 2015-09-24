@@ -1,7 +1,6 @@
 import tempfile
 import gambit
-from bogota.test_utils import near
-from bogota.utils import zero_profile
+from bogota.utils import zero_profile, near
 from posec.pyagg import AGG, FN_TYPE_SUM, FN_TYPE_WEIGHTED_MAX
 
 def make_travellers_dilemma(min_claim=2, max_claim=100, penalty=2):
@@ -92,3 +91,10 @@ def compare_nfgs(g1, g2):
             if not near(p1.payoff(1), p2.payoff(1)):
                 return False, "payoffs differ for p2 at %d,%d" % (i,j)
     return True
+
+def makeGH01():
+    td_low = make_travellers_dilemma(180, 300, 2)
+    td_low.saveToFile('travellers_dilemma_low.agg')
+    td_high = make_travellers_dilemma(180, 300, 180)
+    td_high.saveToFile('travellers_dilemma_high.agg')
+

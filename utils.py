@@ -201,3 +201,14 @@ def filter_float(x):
         raise ValueError("NaN detected")
     else:
         raise ValueError("Unknown non-finite value '%s'" % x)
+
+def near(x,y):
+    try:
+        for xelt, yelt in zip(x,y):
+            if near(xelt, yelt):
+                pass
+            else:
+                return False
+        return True
+    except TypeError:
+        return abs(x-y) < 1e-6
