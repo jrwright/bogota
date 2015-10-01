@@ -15,7 +15,10 @@ class SectionWrapper(object):
         self.section = section
     def __getattr__(self, name):
         if config.has_option(self.section, name):
-            return config.get(self.section, name)
+            if self.section=='db' and name=='port':
+                return config.getint(self.section, name)
+            else:
+                return config.get(self.section, name)
         return None
 
 db = SectionWrapper('db')

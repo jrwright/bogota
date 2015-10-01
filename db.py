@@ -16,6 +16,27 @@ def save_mle_param(parameter_name, parameter_value, restart_idx,
 
 # ================================== Loading ==================================
 
+def mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                 by_game, stratified):
+    """
+    Return a list of completed restart indices for the specified model and data
+    fold combination.
+    """
+    with db_connect() as db:
+        jobid = _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
+        c = db.cursor()
+
+        # Choose parameter value associated with the highest training LL
+        c.execute(_sql(db,
+                       """
+                       select restart_idx
+                       from mle_parameters
+                       where jobid = %s
+                       order by restart_idx asc
+                       """), [jobid])
+        vals = c.fetchall()
+        return map(lambda x: x[0], vals)
+
 def mle_param(parameter_name,
               solver_name, pool_name, fold_seed, num_folds, fold_idx,
               by_game, stratified):
