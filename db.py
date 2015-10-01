@@ -1,21 +1,9 @@
 """
 Interface for saving/restoring values from the database.
 """
+from __future__ import absolute_import
 import sys
-
-# =================================== Config ==================================
-try:
-    import local
-except ImportError:
-    class LocalConfig(object):
-        pass
-    local = LocalConfig()
-    local.DB_TYPE = 'sqlite3'
-    local.DB_NAME = 'bogota_results.db'
-    local.DB_HOST = None
-    local.DB_PORT = None
-    local.DB_USER = None
-    local.DB_PASS = None
+import bogota.cfg as cfg
 
 # =================================== Saving ==================================
 
@@ -108,15 +96,28 @@ def _ensure_jobid(self, db, solver_name, pool_name, fold_seed, num_folds, fold_i
     db.commit()
     return _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=True)
 
-def db_connect(db_type, db_name, db_host=None, db_port=None, db_user=None, db_pass=None):
-    if db_type == 'sqlite3':
+def db_connect(dbtype=None, dbname=None, host=None, port=None, user=None, passwd=None):
+    if dbtype is None:
+        dbtype = cfg.db.dbtype
+    if dbname is None:
+        dbname = cfg.db.dbname
+    if host is None:
+        host = cfg.db.host
+    if port is None:
+        port = cfg.db.port
+    if user is None:
+        user = cfg.db.user
+    if passwd is None:
+        passwd = cfg.db.passwd
+ 
+    if dbtype == 'sqlite3':
         import sqlite3
-        db = sqlite3.connect(db_name)
-    elif db_type == 'mysql':
+        db = sqlite3.connect(dbname)
+    elif dbtype == 'mysql':
         import mysql.connector
-        db = mysql.connector.connect(user=db_user, password=db_pass, db=db, host=db_host, port=db_port)
+        db = mysql.connector.connect(user=user, password=passwd, db=dbname, host=host, port=port)
     else:
-        raise ValueError("Unknown db_type '%s'" % db_type)
+        raise ValueError("Unknown db_type '%s'" % dbtype)
     return db
 
 def create_schema(db):

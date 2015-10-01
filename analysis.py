@@ -3,11 +3,12 @@ import csv
 from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
-from bogota.db import mle_param, MissingData, index_str
-from bogota.tasks import fit_fold
+from .db import mle_param, MissingData, index_str
+from .tasks import fit_fold
 
-def csv_fig(fname, rows, report_intermediate=False, **commonKwArgs):
-    missing = MissingData()
+def csv_fig(fname, rows, report_intermediate=False,
+            row_headings=None, col_headings=None,
+            **commonKwArgs):
     with open(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
         for row in rows:
@@ -21,7 +22,6 @@ def csv_fig(fname, rows, report_intermediate=False, **commonKwArgs):
                 csvrow.append('%.8f' % ((avg/log(10.0))-unif_ll))
                 csvrow.append('%.4f' % (err/log(10.0)))
             f.writerow(csvrow)
-    return missing
 
 def mle_parameter_interval(parameter_name,
                            solver_name, pool_name, fold_seeds, num_folds,
