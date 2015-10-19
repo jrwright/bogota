@@ -7,12 +7,23 @@ import bogota.cfg as cfg
 
 # =================================== Saving ==================================
 
-def save_mle_param(parameter_name, parameter_value, restart_idx,
-                   solver_name, pool_name, fold_seed, num_folds, fold_idx,
-                   by_game, stratified):
+def save_mle_params(train_ll, test_ll,
+                    parameter_names, parameter_values, restart_idx,
+                    solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                    by_game, stratified):
     with db_connect() as db:
-        # TODO
-        pass
+        jobid = _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
+        c = db.cursor()
+
+        ins_sql = _sql(db, 'replace into mle_parameters (jobid, restart_idx, name, value) '
+                       ' values (%s,%s,%s,%s)')
+        num_params = len(parameter_names) + 2
+        c.executemany(ins_sql,
+                      zip([jobid] * num_params,
+                          [restart_idx] * num_params,
+                          ['TRAIN_LL', 'TEST_LL'] + parameter_names,
+                          [train_ll, test_ll] + parameter_values))
+
 
 # ================================== Loading ==================================
 
