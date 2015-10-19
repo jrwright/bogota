@@ -7,7 +7,7 @@ import bogota.cfg as cfg
 
 # =================================== Saving ==================================
 
-def save_mle_params(train_ll, test_ll,
+def save_mle_params(train_ll, test_ll, walltime,
                     parameter_names, parameter_values, restart_idx,
                     solver_name, pool_name, fold_seed, num_folds, fold_idx,
                     by_game, stratified):
@@ -17,12 +17,12 @@ def save_mle_params(train_ll, test_ll,
 
         ins_sql = _sql(db, 'replace into mle_parameters (jobid, restart_idx, name, value) '
                        ' values (%s,%s,%s,%s)')
-        num_params = len(parameter_names) + 2
+        num_params = len(parameter_names) + 3
         c.executemany(ins_sql,
                       zip([jobid] * num_params,
                           [restart_idx] * num_params,
-                          ['TRAIN_LL', 'TEST_LL'] + parameter_names,
-                          [train_ll, test_ll] + parameter_values))
+                          ['TRAIN_LL', 'TEST_LL', 'WALLTIME'] + parameter_names,
+                          [train_ll, test_ll, walltime] + parameter_values))
 
 
 # ================================== Loading ==================================
@@ -36,11 +36,9 @@ def mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
     with db_connect() as db:
         jobid = _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
         c = db.cursor()
-
-        # Choose parameter value associated with the highest training LL
         c.execute(_sql(db,
                        """
-                       select restart_idx
+                       select distinct(restart_idx)
                        from mle_parameters
                        where jobid = %s
                        order by restart_idx asc
