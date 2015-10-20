@@ -23,6 +23,7 @@ def save_mle_params(train_ll, test_ll, walltime,
                           [restart_idx] * num_params,
                           ['TRAIN_LL', 'TEST_LL', 'WALLTIME'] + parameter_names,
                           [train_ll, test_ll, walltime] + parameter_values))
+        db.commit()
 
 
 # ================================== Loading ==================================
