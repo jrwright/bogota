@@ -51,7 +51,7 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
     for rsx in xrange(num_restarts):
         if rsx in completed_restarts or rsx in queued_restarts:
             continue
-        if cfg.async:
+        if cfg.app.async:
             _fit_fold_task.delay(rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                                  by_game, stratified)
         else:
@@ -66,9 +66,14 @@ def mle_queued_restarts():
     Query for active and reserved restarts and return a dictionary from
     fold-keys to lists of queued restart indices.
     """
-    i = app.control.info()
+    if not cfg.app.async:
+        return {}
+
+    i = app.control.inspect()
     h1 = i.active()
     h2 = i.reserved()
+
+    assert h1 is not None and h2 is not None, "Cannot query workers"
 
     ret = {}
     for h in [h1,h2]:

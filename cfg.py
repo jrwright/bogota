@@ -17,6 +17,8 @@ class SectionWrapper(object):
         if config.has_option(self.section, name):
             if self.section=='db' and name=='port':
                 return config.getint(self.section, name)
+            if self.section=='app' and name=='async':
+                return config.getboolean(self.section, name)
             else:
                 return config.get(self.section, name)
         return None
