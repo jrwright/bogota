@@ -11,7 +11,7 @@ def csv_fig(fname, rows, report_intermediate=False,
             **commonKwArgs):
     with open(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
-        defaults = {'parameter_name':'TEST_LL', 'by_game':True, 'stratified':False}
+        defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False}
         for row in rows:
             csvrow = []
             for cell in row:
@@ -58,6 +58,8 @@ def mle_parameter_interval(parameter_name,
                                             index_str(solver_name, pool_name, fold_seeds, num_folds, "", by_game, stratified)))
     if len(avgs) > 0:
         return tdist_confidence_interval(avgs, p_val)
+    else:
+        raise MissingData(solver_name, pool_name, fold_seeds, num_folds, None, by_game, stratified)
 
 def tdist_confidence_interval(avgs, p_val):
     """

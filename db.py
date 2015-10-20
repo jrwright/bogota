@@ -21,7 +21,7 @@ def save_mle_params(train_ll, test_ll, walltime,
         c.executemany(ins_sql,
                       zip([jobid] * num_params,
                           [restart_idx] * num_params,
-                          ['TRAIN_LL', 'TEST_LL', 'WALLTIME'] + parameter_names,
+                          ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
                           [train_ll, test_ll, walltime] + parameter_values))
         db.commit()
 
@@ -127,12 +127,13 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
     db.commit()
     return _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=True)
 
-class ExitWrapper(object):
+class MysqlExitWrapper(object):
     """
     Provide an `__exit__` method for mysql.connector connections.
     """
-    def __init__(self, db):
+    def __init__(self, db, paramstyle):
         self.db = db
+        self.paramstyle = paramstyle
     def __enter__(self):
         return self
     def __exit__(self, exception_type, exception_value, traceback):
@@ -160,7 +161,7 @@ def db_connect(dbtype=None, dbname=None, host=None, port=None, user=None, passwd
     elif dbtype == 'mysql':
         import mysql.connector
         db = mysql.connector.connect(user=user, password=passwd, db=dbname, host=host, port=port)
-        db = ExitWrapper(db)
+        db = MysqlExitWrapper(db, mysql.connector.paramstyle)
     else:
         raise ValueError("Unknown db_type '%s'" % dbtype)
 
@@ -226,9 +227,14 @@ def _sql(db, str):
     """
     Convert ``str`` to use qmark style if necessary for ``db``.
     """
-    mod = sys.modules[db.__class__.__module__]
-    mod = sys.modules[mod.__package__]
-    if mod.paramstyle == 'qmark':
+    try:
+        paramstyle = db.paramstyle
+    except:
+        mod = sys.modules[db.__class__.__module__]
+        mod = sys.modules[mod.__package__]
+        paramstyle = mod.paramstyle
+
+    if paramstyle == 'qmark':
         return str.replace('%s', '?')
     else:
         return str
