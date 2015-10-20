@@ -24,6 +24,10 @@ else:
     class DummyApp(object):
         def task(fn, *args, **kwArgs):
             return fn
+        def worker_main():
+            pass
 
     app = DummyApp()
 
+if __name__ == '__main__':
+    app.worker_main()
