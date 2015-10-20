@@ -98,7 +98,7 @@ class MissingData(Exception):
     def __str__(self):
         return "<MissingData %s>" % index_str(self.solver_name, self.pool_name, self.fold_seed, self.num_folds, self.fold_idx, self.by_game, self.stratified)
 
-def _ensure_jobid(self, db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=False):
+def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=False):
     """
     Load the jobid out of the database, creating a new job record if necessary.
     """
@@ -113,7 +113,7 @@ def _ensure_jobid(self, db, solver_name, pool_name, fold_seed, num_folds, fold_i
                           fold_seed, num_folds, fold_idx, by_game, stratified,
                           jobids))
     elif len(jobids) == 1:
-        self.jobid = jobids[0][0]
+        return jobids[0][0]
 
     elif recursive:
         raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s" % \
@@ -125,6 +125,19 @@ def _ensure_jobid(self, db, solver_name, pool_name, fold_seed, num_folds, fold_i
     c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
     db.commit()
     return _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=True)
+
+class ExitWrapper(object):
+    """
+    Provide an `__exit__` method for mysql.connector connections.
+    """
+    def __init__(self, db):
+        self.db = db
+    def __enter__(self):
+        return self
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.db.close()
+    def __getattr__(self, name):
+        return getattr(self.db, name)
 
 def db_connect(dbtype=None, dbname=None, host=None, port=None, user=None, passwd=None):
     if dbtype is None:
@@ -146,8 +159,10 @@ def db_connect(dbtype=None, dbname=None, host=None, port=None, user=None, passwd
     elif dbtype == 'mysql':
         import mysql.connector
         db = mysql.connector.connect(user=user, password=passwd, db=dbname, host=host, port=port)
+        db = ExitWrapper(db)
     else:
         raise ValueError("Unknown db_type '%s'" % dbtype)
+
     return db
 
 def create_schema(db):
