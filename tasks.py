@@ -12,6 +12,18 @@ import bogota.cfg as cfg
 @app.task(name='bogota.tasks._fit_fold_task')
 def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                    by_game, stratified):
+    # Make sure we don't double-work
+    completed_restarts = mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                                      by_game, stratified)
+    if restart_idx in completed_restarts:
+        info("Skipping completed fold %s/%s/%s/%s/%s/%s/%s/%s",
+         restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
+         by_game, stratified)
+        return
+
+    info("Fitting fold %s/%s/%s/%s/%s/%s/%s/%s",
+         restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
+         by_game, stratified)
     preimport(pool_name)
     preimport(solver_name)
     pool = eval(pool_name, sys.modules)
