@@ -11,7 +11,7 @@ def csv_fig(fname, rows,
             **commonKwArgs):
     with open(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
-        defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False}
+        defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
         for row in rows:
             csvrow = []
             for cell in row:
@@ -32,24 +32,26 @@ def csv_fig(fname, rows,
 def mle_parameter_interval(parameter_name,
                            solver_name, pool_name, fold_seeds, num_folds,
                            by_game, stratified,
-                           p_val=0.05, queue_missing=False):
-    missing_count = 0
+                           p_val=0.05,
+                           report_intermediate=True, queue_missing=False):
+    missing = 0
     avgs = []
-
-    # Caching for restarts
-    queued = None
-    completed_restarts = None
 
     for fold_seed in fold_seeds:
         data = []
         for fold_idx in xrange(max(num_folds, 1)):
+            queued = None
+            completed_restarts = None
             try:
                 data.append(mle_param(parameter_name,
                                       solver_name, pool_name, fold_seed, num_folds, fold_idx,
                                       by_game, stratified))
-            except MissingData:
-                missing_count += 1
-            if queue_missing:
+            except MissingData as ex:
+                if report_intermediate:
+                    missing += 1
+                else:
+                    missing = ex
+            if queue_missing and missing:
                 completed_restarts, queued = \
                     fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
                              by_game, stratified,
@@ -57,9 +59,11 @@ def mle_parameter_interval(parameter_name,
         if len(data) > 0:
             avgs.append(sum(data)/len(data))
 
-    if missing_count > 0:
-        warn("%d/%d rows missing for %s" % (missing_count, max(len(fold_seeds)*num_folds, 1),
-                                            index_str(solver_name, pool_name, fold_seeds, num_folds, "", by_game, stratified)))
+    if missing and not report_intermediate:
+        raise missing
+    if missing > 0:
+        warn("%d/%d rows missing for %s" % (missing, max(len(fold_seeds)*num_folds, 1),
+                                            index_str(solver_name, pool_name, fold_seeds, num_folds, [], by_game, stratified)))
     if len(avgs) > 0:
         return tdist_confidence_interval(avgs, p_val)
     else:
