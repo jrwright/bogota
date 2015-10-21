@@ -3,7 +3,7 @@ Tasks that can be potentially queued for offline runs.
 """
 from __future__ import absolute_import
 import sys
-from logging import info
+from logging import info, debug
 from timeit import default_timer as tick
 from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver
@@ -59,6 +59,14 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
     if completed_restarts is None:
         completed_restarts = mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
                                           by_game, stratified)
+
+    # Don't bother querying celery if everything is done
+    if set(range(num_folds)).issubset(completed_restarts):
+        debug("All restarts completed for fold %s/%s/%s/%s/%s/%s/%s",
+              solver_name, pool_name, fold_seed, num_folds, fold_idx,
+              by_game, stratified)
+        return completed_restarts, queued
+
     if queued is None:
         queued = mle_queued_restarts()
     queued_restarts = queued.get((solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified), [])
@@ -67,6 +75,9 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
         if rsx in completed_restarts or rsx in queued_restarts:
             continue
         if cfg.app.async:
+            info("Queueing fold %s/%s/%s/%s/%s/%s/%s/%s",
+                 rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                 by_game, stratified)
             _fit_fold_task.delay(rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                                  by_game, stratified)
         else:
