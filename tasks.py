@@ -11,6 +11,8 @@ import bogota.cfg as cfg
 @app.task(name='bogota.tasks._fit_fold_task')
 def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                    by_game, stratified):
+    preimport(pool_name)
+    preimport(solver_name)
     pool = eval(pool_name, sys.modules)
     if num_folds == 0:
         train_fold = pool
@@ -86,3 +88,17 @@ def mle_queued_restarts():
                 ret.get(key, []).append(val)
 
     return ret
+
+
+def preimport(name):
+    """
+    Attempt to import all prerequisite modules and packages for `name`.
+    """
+    dotx = name.find('.')
+    try:
+        while dotx > 0:
+            mod = __import__(name[:dotx])
+            reload(mod) # Use the most recent version
+            dotx = name.find('.', dotx+1)
+    except ImportError:
+        pass
