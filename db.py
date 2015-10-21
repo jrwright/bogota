@@ -3,6 +3,7 @@ Interface for saving/restoring values from the database.
 """
 from __future__ import absolute_import
 import sys
+from logging import info
 import bogota.cfg as cfg
 
 # =================================== Saving ==================================
@@ -13,6 +14,7 @@ def save_mle_params(train_ll, test_ll, walltime,
                     by_game, stratified):
     with db_connect() as db:
         jobid = _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
+        info("Writing results for job #%d restart #%d", jobid, restart_idx)
         c = db.cursor()
 
         ins_sql = _sql(db, 'replace into mle_parameters (jobid, restart_idx, name, value) '

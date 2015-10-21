@@ -3,6 +3,7 @@ Tasks that can be potentially queued for offline runs.
 """
 from __future__ import absolute_import
 import sys
+from logging import info
 from timeit import default_timer as tick
 from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver
@@ -98,6 +99,7 @@ def preimport(name):
     try:
         while dotx > 0:
             mod = __import__(name[:dotx])
+            info("reload %s", name[:dotx])
             reload(mod) # Use the most recent version
             dotx = name.find('.', dotx+1)
     except ImportError:

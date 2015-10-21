@@ -1,6 +1,7 @@
 """
 Define the [Solver] class and the [solver] convenience decorator.
 """
+from logging import debug
 from warnings import warn
 import numpy as np
 from numpy.random import RandomState
@@ -90,6 +91,11 @@ class Solver(object):
 
     def fit(self, objective, **kwargs):
         # TODO - default kwargs for different kinds of function
+        try:
+            debug("Fitting '%s'", self.fn.name)
+        except:
+            pass
+        
         kw = {}
         kwargs = dict(kwargs)
         def scalar_target(x):
