@@ -6,7 +6,7 @@ from scipy.stats import t as tdist
 from .db import mle_param, MissingData, index_str
 from .tasks import fit_fold
 
-def csv_fig(fname, rows, report_intermediate=False,
+def csv_fig(fname, rows,
             row_headings=None, col_headings=None,
             **commonKwArgs):
     with open(fname, 'wt') as s:
@@ -20,9 +20,13 @@ def csv_fig(fname, rows, report_intermediate=False,
                 args.update(cell)
                 pool_obj = eval(args['pool_name'], sys.modules)
                 unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / args['num_folds']
-                (avg, err) = mle_parameter_interval(**args)
-                csvrow.append('%.8f' % ((avg/log(10.0))-unif_ll))
-                csvrow.append('%.4f' % (err/log(10.0)))
+                try:
+                    (avg, err) = mle_parameter_interval(**args)
+                    csvrow.append('%.8f' % ((avg/log(10.0))-unif_ll))
+                    csvrow.append('%.4f' % (err/log(10.0)))
+                except MissingData:
+                    csvrow.append("None")
+                    csvrow.append("None")
             f.writerow(csvrow)
 
 def mle_parameter_interval(parameter_name,
