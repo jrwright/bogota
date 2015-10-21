@@ -9,6 +9,7 @@ from .tasks import fit_fold
 def csv_fig(fname, rows,
             row_headings=None, col_headings=None,
             **commonKwArgs):
+    missing = 0
     with open(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
         defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
@@ -25,9 +26,12 @@ def csv_fig(fname, rows,
                     csvrow.append('%.8f' % ((avg/log(10.0))-unif_ll))
                     csvrow.append('%.4f' % (err/log(10.0)))
                 except MissingData:
+                    missing += 1
                     csvrow.append("None")
                     csvrow.append("None")
             f.writerow(csvrow)
+    return missing
+
 
 def mle_parameter_interval(parameter_name,
                            solver_name, pool_name, fold_seeds, num_folds,
