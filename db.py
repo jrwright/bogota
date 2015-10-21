@@ -18,11 +18,12 @@ def save_mle_params(train_ll, test_ll, walltime,
         ins_sql = _sql(db, 'replace into mle_parameters (jobid, restart_idx, name, value) '
                        ' values (%s,%s,%s,%s)')
         num_params = len(parameter_names) + 3
+
         c.executemany(ins_sql,
                       zip([jobid] * num_params,
                           [restart_idx] * num_params,
                           ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
-                          [train_ll, test_ll, walltime] + parameter_values))
+                          map(float, [train_ll, test_ll, walltime] + parameter_values)))
         db.commit()
 
 
