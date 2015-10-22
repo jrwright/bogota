@@ -26,9 +26,42 @@ def solver(fittable_parameters,
             args.update(kwArgs2)
             return Solver(fn, fittable_parameters, parameter_bounds, simplex_parameters,
                           parameter_scales, **args)
+        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, False)
         fn.Solver = makeSolver
         return fn
     return decorator
+
+def _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, strict):
+    """
+    Perform some basic checking on solver arguments.
+    Factored so that the decorator can do compile-time checks as well.
+    """
+    parameter_bounds = parameter_bounds or {}
+    simplex_parameters = simplex_parameters or []
+    flat_simplex = reduce(lambda x, y: list(x) + list(y), simplex_parameters, [])
+    parameter_scales = parameter_scales or {}
+
+    # Every parameter constraint must refer to a real parameter
+    args = fn.func_code.co_varnames[1:fn.func_code.co_argcount]
+    for p in fittable_parameters + parameter_bounds.keys() + flat_simplex + parameter_scales.keys():
+        if p not in args:
+            raise TypeError("%s() has no argument named '%s'" %
+                            (fn.__name__, p))
+
+    if strict:
+        # Every parameter omitted must have a default
+        if fn.func_defaults is None:
+            num_defaults = 0
+        else:
+            num_defaults = len(fn.func_defaults)
+        s = fn.func_code.co_argcount - num_defaults - 1
+        for a in args:
+            if a not in fittable_parameters and a not in kwArgs and args.index(a) < s:
+                debug("%d: fn.func_code.co_argcount=%d, len(fn.func_defaults)=%d" % (s, fn.func_code.co_argcount, len(fn.func_defaults) if fn.func_defaults is not None else -1))
+                raise TypeError("%s() does not provide a default value for "
+                                "argument '%s', so it must be included in "
+                                "fittable_parameters." %
+                                (fn.__name__, a))
 
 # ================================== classes ==================================
 
@@ -42,6 +75,9 @@ class Solver(object):
                  simplex_parameters=None,
                  parameter_scales=None,
                  **kwArgs):
+
+        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, True)
+
         # Copy solver args
         self.fn = fn
         self.fittable_parameters = list(fittable_parameters)
