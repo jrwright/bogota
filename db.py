@@ -3,8 +3,11 @@ Interface for saving/restoring values from the database.
 """
 from __future__ import absolute_import
 import sys
-from logging import info
 import bogota.cfg as cfg
+import logging
+info = logging.getLogger(__name__).info
+debug = logging.getLogger(__name__).debug
+from warnings import warn
 
 # =================================== Saving ==================================
 
@@ -257,7 +260,7 @@ def _solver(spec):
     if isinstance(spec, str) or isinstance(spec, unicode):
         # strip "broken" prefix
         if spec[0:len("broken.")] == "broken.":
-            print "stripping 'broken.' from '%s'" % (spec,)
+            warn("stripping 'broken.' from '%s'" % (spec,))
             spec = spec[len("broken."):]
         if spec[-1] == ')':
             return eval(spec, sys.modules)

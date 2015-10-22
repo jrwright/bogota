@@ -106,7 +106,6 @@ def quantal_ch (game, alphas, lam, l0_prediction=None, per_level=False):
     else:
         return proportionally_mix_profiles(alphas, level_profiles)
 
-
 # =========================== distribution utilities ==========================
 
 def spike_poisson_alphas(eps, tau, top_level=7):

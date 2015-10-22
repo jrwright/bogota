@@ -1,8 +1,11 @@
 """
 Define the [Solver] class and the [solver] convenience decorator.
 """
-from logging import debug
 from warnings import warn
+import logging
+info = logging.getLogger(__name__).info
+debug = logging.getLogger(__name__).debug
+
 import numpy as np
 from numpy.random import RandomState
 import scipy.optimize
@@ -95,7 +98,7 @@ class Solver(object):
             debug("Fitting '%s'", self.fn.name)
         except:
             pass
-        
+
         kw = {}
         kwargs = dict(kwargs)
         def scalar_target(x):

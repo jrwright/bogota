@@ -3,8 +3,11 @@ Tasks that can be potentially queued for offline runs.
 """
 from __future__ import absolute_import
 import sys
-from logging import info, debug
 from timeit import default_timer as tick
+import logging
+info = logging.getLogger(__name__).info
+debug = logging.getLogger(__name__).debug
+
 from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver
 import bogota.cfg as cfg

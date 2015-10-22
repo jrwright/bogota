@@ -1,5 +1,9 @@
 import sys
 import csv
+import logging
+info = logging.getLogger(__name__).info
+debug = logging.getLogger(__name__).debug
+
 from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
@@ -40,6 +44,10 @@ def mle_parameter_interval(parameter_name,
                            report_intermediate=True, queue_missing=False):
     missing = 0
     avgs = []
+
+    info("Fetching folds %s/%s/%s/%s/[]/%s/%s",
+         solver_name, pool_name, fold_seeds, num_folds,
+         by_game, stratified)
 
     for fold_seed in fold_seeds:
         data = []
