@@ -45,6 +45,20 @@ def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
                                         l1_prediction,
                                         l2_prediction])
 
+def heterogeneous_lk(game, alphas, epses, lams, l0_prediction=None):
+    unif = game.mixed_strategy_profile()
+    if l0_prediction is None:
+        l0_prediction = game.mixed_strategy_profile()
+    assert len(epses) == len(lams) == (len(alphas) - 1)
+
+    predictions = [l0_prediction]
+    for eps,lam in zip(epses, lams):
+        lk = logit_br_all(predictions[-1], lam)
+        lk_prediction = proportionally_mix_profiles([eps, 1.0-eps], [unif, lk])
+        predictions.append(lk_prediction)
+
+    return proportionally_mix_profiles(alphas, predictions)
+
 @solver(['tau'],
         parameter_bounds={'tau':(0.0, None)})
 def poisson_ch(game, tau, l0_prediction=None, top_level=7):
@@ -92,9 +106,9 @@ def quantal_ch (game, alphas, lam, l0_prediction=None, per_level=False):
     distribution is assumed.
     """
     lams = [lam] * (len(alphas) - 1)
-    return heterogenous_quantal_ch(game, alphas, lams, l0_prediction, per_level)
+    return heterogeneous_quantal_ch(game, alphas, lams, l0_prediction, per_level)
 
-def heterogenous_quantal_ch(game, alphas, lams, l0_prediction=None, per_level=False):
+def heterogeneous_quantal_ch(game, alphas, lams, l0_prediction=None, per_level=False):
     assert len(lams) == len(alphas) - 1
     if l0_prediction is None:
         l0_prediction = game.mixed_strategy_profile()
