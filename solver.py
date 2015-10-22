@@ -26,7 +26,7 @@ def solver(fittable_parameters,
             args.update(kwArgs2)
             return Solver(fn, fittable_parameters, parameter_bounds, simplex_parameters,
                           parameter_scales, **args)
-        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, False)
+        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, True)
         fn.Solver = makeSolver
         return fn
     return decorator
@@ -63,6 +63,12 @@ def _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_paramete
                                 "fittable_parameters." %
                                 (fn.__name__, a))
 
+    # Every fittable parameter should have bounds specified
+    for p in fittable_parameters:
+        if p not in flat_simplex and p not in parameter_bounds:
+            warn("Fittable parameter '%s' of %s() has no bounds specified" %
+                 (p, fn.__name__))
+
 # ================================== classes ==================================
 
 class Solver(object):
@@ -76,7 +82,7 @@ class Solver(object):
                  parameter_scales=None,
                  **kwArgs):
 
-        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, True)
+        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, True)
 
         # Copy solver args
         self.fn = fn
