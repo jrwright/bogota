@@ -91,12 +91,17 @@ def quantal_ch (game, alphas, lam, l0_prediction=None, per_level=False):
     level-0 agents would act.  If it is not provided, then the uniform
     distribution is assumed.
     """
+    lams = [lam] * (len(alphas) - 1)
+    return heterogenous_quantal_ch(game, alphas, lams, l0_prediction, per_level)
+
+def heterogenous_quantal_ch(game, alphas, lams, l0_prediction=None, per_level=False):
+    assert len(lams) == len(alphas) - 1
     if l0_prediction is None:
         l0_prediction = game.mixed_strategy_profile()
     level_profiles = [l0_prediction]
     accum = alphas[0]
     belief = l0_prediction
-    for k in xrange(1, len(alphas)):
+    for k,lam in zip(xrange(1, len(alphas)), lams):
         qbr = logit_br_all(belief, lam)
         level_profiles.append(qbr)
         belief = proportionally_mix_profiles([accum, alphas[k]], [belief, qbr])
