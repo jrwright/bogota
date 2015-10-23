@@ -34,24 +34,31 @@ def save_mle_params(train_ll, test_ll, walltime,
 
 # ================================== Loading ==================================
 
-def mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+def mle_restarts(solver_name, pool_name, fold_seeds, num_folds,
                  by_game, stratified):
     """
     Return a list of completed restart indices for the specified model and data
     fold combination.
     """
+    debug("Fetching restarts for %s/%s/%s/%d", solver_name, pool_name, fold_seeds, num_folds)
     with db_connect() as db:
-        jobid = _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
         c = db.cursor()
-        c.execute(_sql(db,
-                       """
-                       select distinct(restart_idx)
-                       from mle_parameters
-                       where jobid = %s
-                       order by restart_idx asc
-                       """), [jobid])
+        sql = """
+              select j.fold_seed, j.fold_idx, p.restart_idx
+                from mle_parameters p
+                join mle_jobs j on p.jobid = j.jobid
+               where j.solver_name=%s
+                 and j.pool_name=%s
+                 and j.fold_seed in ({seeds})
+                 and j.num_folds = %s
+                 and j.by_game = %s
+                 and j.stratified = %s
+              """.format(seeds=','.join(map(str, fold_seeds)))
+        c.execute(_sql(db, sql), [solver_name, pool_name, num_folds, by_game, stratified])
         vals = c.fetchall()
-        return map(lambda x: x[0], vals)
+        debug("%d restarts completed for %s/%s/%s/%d", len(vals),
+              solver_name, pool_name, fold_seeds, num_folds)
+        return map(lambda x: tuple(x), vals)
 
 def mle_param(parameter_name,
               solver_name, pool_name, fold_seed, num_folds, fold_idx,

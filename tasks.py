@@ -16,9 +16,9 @@ import bogota.cfg as cfg
 def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                    by_game, stratified):
     # Make sure we don't double-work
-    completed_restarts = mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+    completed_restarts = mle_restarts(solver_name, pool_name, [fold_seed], num_folds, 
                                       by_game, stratified)
-    if restart_idx in completed_restarts:
+    if (fold_seed, fold_idx, restart_idx) in completed_restarts:
         info("Skipping completed fold %s/%s/%s/%s/%s/%s/%s/%s",
          restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
          by_game, stratified)
@@ -60,11 +60,12 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
     Returns a pair `queued, completed_restarts` to enable caching operation.
     """
     if completed_restarts is None:
-        completed_restarts = mle_restarts(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+        completed_restarts = mle_restarts(solver_name, pool_name, [fold_seed], num_folds,
                                           by_game, stratified)
 
     # Don't bother querying celery if everything is done
-    if set(range(num_folds)).issubset(completed_restarts):
+    all_restarts = set((fold_seed, fold_idx, rsx) for rsx in range(num_restarts))
+    if all_restarts.issubset(completed_restarts):
         debug("All restarts completed for fold %s/%s/%s/%s/%s/%s/%s",
               solver_name, pool_name, fold_seed, num_folds, fold_idx,
               by_game, stratified)
@@ -75,7 +76,7 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
     queued_restarts = queued.get((solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified), [])
 
     for rsx in xrange(num_restarts):
-        if rsx in completed_restarts or rsx in queued_restarts:
+        if (fold_seed, fold_idx, rsx) in completed_restarts or rsx in queued_restarts:
             continue
         if cfg.app.async:
             info("Queueing fold %s/%s/%s/%s/%s/%s/%s/%s",

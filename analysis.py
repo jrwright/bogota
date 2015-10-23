@@ -7,7 +7,7 @@ debug = logging.getLogger(__name__).debug
 from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
-from .db import mle_param, MissingData, index_str
+from .db import mle_param, mle_restarts, MissingData, index_str
 from .tasks import fit_fold
 
 def csv_fig(fname, rows,
@@ -49,15 +49,30 @@ def mle_parameter_interval(parameter_name,
          solver_name, pool_name, fold_seeds, num_folds,
          by_game, stratified)
 
+    # Fetch restart list for the entire collection in a single shot to speed up
+    # the common case where literally every restart needs to be queued
+    queued = None
+    if queue_missing:
+        completed_restarts = mle_restarts(solver_name, pool_name, fold_seeds, num_folds,
+                                          by_game, stratified)
+    else:
+        completed_restarts = []
+
     for fold_seed in fold_seeds:
         data = []
         for fold_idx in xrange(max(num_folds, 1)):
-            queued = None
-            completed_restarts = None
+            idx_done = [c for c in completed_restarts if c[0]==fold_seed and c[1]==fold_idx]
             try:
-                data.append(mle_param(parameter_name,
-                                      solver_name, pool_name, fold_seed, num_folds, fold_idx,
-                                      by_game, stratified))
+                if not queue_missing or len(idx_done) > 0:
+                    data.append(mle_param(parameter_name,
+                                          solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                                          by_game, stratified))
+                else:
+                    debug("No restarts done for %s, skipping parameter fetch",
+                          index_str(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                                    by_game, stratified))
+                    raise MissingData(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                                      by_game, stratified)
             except MissingData as ex:
                 if report_intermediate:
                     missing += 1
