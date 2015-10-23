@@ -202,13 +202,13 @@ def filter_float(x):
     else:
         raise ValueError("Unknown non-finite value '%s'" % x)
 
-def near(x,y):
+def near(x,y, tol=1e-6):
     try:
         for xelt, yelt in zip(x,y):
-            if near(xelt, yelt):
+            if near(xelt, yelt, tol):
                 pass
             else:
                 return False
         return True
     except TypeError:
-        return abs(x-y) < 1e-6
+        return abs(x-y) < tol

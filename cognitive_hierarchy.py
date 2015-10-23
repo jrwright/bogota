@@ -106,6 +106,7 @@ def heterogeneous_quantal_ch(game, alphas, lams, l0_prediction=None, per_level=F
         level_profiles.append(qbr)
         belief = proportionally_mix_profiles([accum, alphas[k]], [belief, qbr])
         accum = accum + alphas[k]
+
     if per_level:
         return level_profiles
     else:

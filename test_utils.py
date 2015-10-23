@@ -1,5 +1,5 @@
 import gambit
-from bogota.utils import zero_profile
+from bogota.utils import zero_profile, near
 
 try:
     import os.path
@@ -35,17 +35,6 @@ def profile(probs=[0.0, 0.0, 0.0, 0.0]):
 
 def constantly(x):
     return (lambda *args: x)
-
-def near(x,y):
-    try:
-        for xelt, yelt in zip(x,y):
-            if near(xelt, yelt):
-                pass
-            else:
-                return False
-        return True
-    except TypeError:
-        return abs(x-y) < 1e-6
 
 def u(g, i, j):
     p = zero_profile(g)
