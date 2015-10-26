@@ -12,7 +12,7 @@ from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver
 import bogota.cfg as cfg
 
-@app.task(name='bogota.tasks._fit_fold_task')
+@app.task(name='bogota.tasks._fit_fold_task', ignore_result=True)
 def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                    by_game, stratified):
     # Make sure we don't double-work
