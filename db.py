@@ -89,6 +89,42 @@ def mle_param(parameter_name,
             raise MissingData(solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
     return vals[0][0]
 
+def mle_params(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+               by_game, stratified):
+    """
+    Return the MLE estimate of all parameters for the specified model and
+    data fold combination.
+    """
+    with db_connect() as db:
+        jobid = _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
+        c = db.cursor()
+
+        # Choose parameter values associated with the highest training LL
+        c.execute(_sql(db,
+                       """
+                       select p.name, p.value, l.value
+                       from mle_parameters p
+                       join mle_parameters l on l.restart_idx = p.restart_idx and l.jobid = p.jobid
+                       where p.jobid = %s
+                       and l.name = 'TRAIN_LL'
+                       order by l.value desc
+                       """), [jobid])
+        vals = c.fetchall()
+        c.close()
+        if len(vals) == 0:
+            raise MissingData(solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
+
+        ret = {}
+        best_train_ll = None
+        for name, val, train_ll in vals:
+            if best_train_ll is None:
+                best_train_ll = train_ll
+            elif train_ll <> best_train_ll:
+                break
+            ret[name] = val
+
+        return ret
+
 # =================================== Utils ===================================
 
 def index_str(solver_name, pool_name, fold_seed, num_folds, fold_idx,

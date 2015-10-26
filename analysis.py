@@ -7,7 +7,7 @@ debug = logging.getLogger(__name__).debug
 from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
-from .db import mle_param, mle_restarts, MissingData, index_str
+from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver
 from .tasks import fit_fold
 
 def csv_fig(fname, rows,
@@ -24,7 +24,7 @@ def csv_fig(fname, rows,
                 args.update(commonKwArgs)
                 args.update(cell)
                 pool_obj = eval(args['pool_name'], sys.modules)
-                unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / args['num_folds']
+                unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / (args['num_folds'] or 1)
                 try:
                     (avg, err) = mle_parameter_interval(**args)
                     csvrow.append('%.8f' % ((avg/log(10.0))-unif_ll))
@@ -36,6 +36,19 @@ def csv_fig(fname, rows,
             f.writerow(csvrow)
     return missing
 
+
+def mle_solver(solver_name, pool_name, fold_seeds, num_folds, fold_idx,
+               by_game, stratified):
+    """
+    Return a solver initialized to the parameters with the highest training LL.
+    """
+    params = mle_params(solver_name, pool_name, fold_seeds, num_folds, fold_idx,
+                        by_game, stratified)
+    s = _solver(solver_name)
+    for p in s.fittable_parameters:
+        s.parameters[p] = params[p]
+
+    return s
 
 def mle_parameter_interval(parameter_name,
                            solver_name, pool_name, fold_seeds, num_folds,
@@ -107,3 +120,28 @@ def tdist_confidence_interval(avgs, p_val):
     q = 1.0 - (p_val / 2.0)
     width = tdist.ppf(q, n-1) / sqrt(n)
     return (avg, width*std(avgs))
+
+# =================================== Utils ===================================
+
+class NullExit(object):
+    """
+    Return a no-op `__exit__` method
+    """
+    def __init__(self, obj):
+        self.obj = obj
+    def __enter__(self):
+        return self
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
+    def __getattr__(self, name):
+        return getattr(self.obj, name)
+
+def console_or_file(fname, arg=None):
+    import sys
+    if fname is None:
+        return NullExit(sys.stdout)
+    elif isinstance(fname, file):
+        return NullExit(fname)
+    else:
+        return open(fname, arg)
+
