@@ -14,10 +14,15 @@ def csv_fig(fname, rows,
             row_headings=None, col_headings=None,
             **commonKwArgs):
     missing = 0
-    with open(fname, 'wt') as s:
+    with console_or_file(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
         defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
-        for row in rows:
+
+        cooked_headings = reduce(lambda x,y: x+y, ([ch, 'err'] for ch in col_headings))
+        cooked_headings[0] = "# " + cooked_headings[0]
+        f.writerow(cooked_headings)
+
+        for row, rh in zip(rows, row_headings or [None]*len(rows)):
             csvrow = []
             for cell in row:
                 args = dict(defaults)
@@ -33,6 +38,8 @@ def csv_fig(fname, rows,
                     missing += 1
                     csvrow.append("None")
                     csvrow.append("None")
+            if rh:
+                csvrow.append("# " + rh)
             f.writerow(csvrow)
     return missing
 
@@ -144,4 +151,3 @@ def console_or_file(fname, arg=None):
         return NullExit(fname)
     else:
         return open(fname, arg)
-
