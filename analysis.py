@@ -18,9 +18,10 @@ def csv_fig(fname, rows,
         f = csv.writer(s, delimiter='\t')
         defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
 
-        cooked_headings = reduce(lambda x,y: x+y, ([ch, 'err'] for ch in col_headings))
-        cooked_headings[0] = "# " + cooked_headings[0]
-        f.writerow(cooked_headings)
+        if col_headings:
+            cooked_headings = reduce(lambda x,y: x+y, ([ch, 'err'] for ch in col_headings))
+            cooked_headings[0] = "# " + cooked_headings[0]
+            f.writerow(cooked_headings)
 
         for row, rh in zip(rows, row_headings or [None]*len(rows)):
             csvrow = []
