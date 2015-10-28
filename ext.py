@@ -7,8 +7,10 @@ from gambit.qre import ExternalStrategicQREPathTracer, LogitQRE
 from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
 from bogota.solver import solver
 from bogota.utils import proportionally_mix_profiles
+import bogota.data
 
 import logging
+debug = logging.getLogger(__name__).debug
 error = logging.getLogger(__name__).error
 
 @solver(fittable_parameters=['lam'],
@@ -25,6 +27,29 @@ def qre(game, lam):
     except:
         error("Exception during qre(%s,%f)", game.title, lam)
         raise
+
+
+# HACK Curse you pipelining errors
+FILE_OVERRIDE = {'bogota.data.cn_goeree2001ten.travellers_dilemma_low':bogota.data.pools.cn_goeree2001ten.dirname + '/travellers_dilemma_low.agg',
+                 'bogota.data.cn_goeree2001ten.travellers_dilemma_high':bogota.data.pools.cn_goeree2001ten.dirname + '/travellers_dilemma_high.agg'}
+
+import subprocess
+def qre2(game, lam):
+    if lam == 0.0:
+        return game.mixed_strategy_profile()
+    elif game.title in FILE_OVERRIDE:
+        cmdline = "gambit-logit -d 20 -l %f -q < %s" % (lam, FILE_OVERRIDE[game.title])
+        debug(cmdline)
+        p = subprocess.Popen(cmdline, shell=True, stdout=subprocess.PIPE)
+        line = list(p.stdout)[-1]
+        entries = line.strip().split(",")
+        profile = game.mixed_strategy_profile()
+        for (i, p) in enumerate(entries[1:]):
+            profile[i] = float(p)
+        return profile
+    else:
+        s = ExternalStrategicQREPathTracer()
+        return s.compute_at_lambda(game, lam)[0]
 
 @solver(fittable_parameters= ['eps'],
         parameter_bounds={'eps':(0.0, 1.0)})
