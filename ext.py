@@ -3,10 +3,13 @@ Solver support for external solvers (QRE and Nash equilibrium).
 """
 from __future__ import absolute_import
 from numpy import inf
-from gambit.qre import ExternalStrategicQREPathTracer
+from gambit.qre import ExternalStrategicQREPathTracer, LogitQRE
 from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
-from .solver import solver
-from .utils import proportionally_mix_profiles
+from bogota.solver import solver
+from bogota.utils import proportionally_mix_profiles
+
+import logging
+error = logging.getLogger(__name__).error
 
 @solver(fittable_parameters=['lam'],
         parameter_bounds={'lam':(0.0, None)})
@@ -14,12 +17,18 @@ def qre(game, lam):
     """
     Return a quantal response equilibrium with precision 'lam' for 'game'.
     """
-    s = ExternalStrategicQREPathTracer()
-    return s.compute_at_lambda(game, lam)[0]
+    try:
+        if lam == 0.0:
+            return game.mixed_strategy_profile()
+        s = ExternalStrategicQREPathTracer()
+        return s.compute_at_lambda(game, lam)[0]
+    except:
+        error("Exception during qre(%s,%f)", game.title, lam)
+        raise
 
 @solver(fittable_parameters= ['eps'],
         parameter_bounds={'eps':(0.0, 1.0)})
-def nash(game, eps):
+def pure_nash(game, eps):
     """
     Return a Nash equilibrium mixed with uniform noise.
     """
@@ -27,7 +36,7 @@ def nash(game, eps):
     eqa = s.solve(game)
     assert len(eqa) == 1, "%d eqa found" % len(eqa)
     return proportionally_mix_profiles([eps, 1.0-eps],
-                                       [game.mixed_profile(), eqa[0]])
+                                       [game.mixed_strategy_profile(), eqa[0]])
 
 NASH_CACHE = {}
 
@@ -49,7 +58,7 @@ def nee(game, eps):
         eqa = s.solve(game)
         NASH_CACHE[game] = eqa
     assert len(eqa) > 0
-    return [proportionally_mix_profiles([eps, 1.0-eps], [game.mixed_profile(), eqm]) for eqm in eqa]
+    return [proportionally_mix_profiles([eps, 1.0-eps], [game.mixed_strategy_profile(), eqm]) for eqm in eqa]
 
 @solver(fittable_parameters= ['eps'],
         parameter_bounds={'eps':(0.0, 1.0)})
