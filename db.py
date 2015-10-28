@@ -40,25 +40,28 @@ def mle_restarts(solver_name, pool_name, fold_seeds, num_folds,
     Return a list of completed restart indices for the specified model and data
     fold combination.
     """
-    debug("Fetching restarts for %s/%s/%s/%d", solver_name, pool_name, fold_seeds, num_folds)
-    with db_connect() as db:
-        c = db.cursor()
-        sql = """
-              select j.fold_seed, j.fold_idx, p.restart_idx
-                from mle_parameters p
-                join mle_jobs j on p.jobid = j.jobid
-               where j.solver_name=%s
-                 and j.pool_name=%s
-                 and j.fold_seed in ({seeds})
-                 and j.num_folds = %s
-                 and j.by_game = %s
-                 and j.stratified = %s
-              """.format(seeds=','.join(map(str, fold_seeds)))
-        c.execute(_sql(db, sql), [solver_name, pool_name, num_folds, by_game, stratified])
-        vals = c.fetchall()
-        debug("%d restarts completed for %s/%s/%s/%d", len(vals),
-              solver_name, pool_name, fold_seeds, num_folds)
-        return map(lambda x: tuple(x), vals)
+    ret = []
+    for fold_seed in fold_seeds:
+        debug("Fetching restarts for %s/%s/%d/%d", solver_name, pool_name, fold_seed, num_folds)
+        with db_connect() as db:
+            c = db.cursor()
+            sql = """
+                  select distinct j.fold_seed, j.fold_idx, p.restart_idx
+                    from mle_jobs j
+                    join mle_parameters p on p.jobid = j.jobid
+                   where j.solver_name=%s
+                     and j.pool_name=%s
+                     and j.fold_seed=%s
+                     and j.num_folds = %s
+                     and j.by_game = %s
+                     and j.stratified = %s
+                  """
+            c.execute(_sql(db, sql), [solver_name, pool_name, fold_seed, num_folds, by_game, stratified])
+            vals = c.fetchall()
+            ret += map(lambda x: tuple(x), vals)
+    debug("%d restarts completed for %s/%s/%s/%d", len(ret),
+          solver_name, pool_name, fold_seeds, num_folds)
+    return ret
 
 def mle_param(parameter_name,
               solver_name, pool_name, fold_seed, num_folds, fold_idx,
