@@ -9,7 +9,7 @@ info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 
 from .celeryapp import app
-from .db import mle_restarts, save_mle_params, _solver
+from .db import mle_restarts, save_mle_params, _solver, _ensure_jobid
 import bogota.cfg as cfg
 
 @app.task(name='bogota.tasks._fit_fold_task', ignore_result=True)
@@ -75,6 +75,7 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
         queued = mle_queued_restarts()
     queued_restarts = queued.get((solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified), [])
 
+    create_job = True
     for rsx in xrange(num_restarts):
         if (fold_seed, fold_idx, rsx) in completed_restarts or rsx in queued_restarts:
             continue
@@ -82,6 +83,11 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
             info("Queueing fold %s/%s/%s/%s/%s/%s/%s/%s",
                  rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                  by_game, stratified)
+            if create_job:
+                _ensure_jobid(None,
+                              solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                              by_game, stratified)
+                create_job = False
             _fit_fold_task.delay(rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                                  by_game, stratified)
         else:

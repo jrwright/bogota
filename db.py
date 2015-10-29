@@ -9,6 +9,8 @@ info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 from warnings import warn
 
+#TODO bulk insert jobids before bulk que
+
 # =================================== Saving ==================================
 
 def save_mle_params(train_ll, test_ll, walltime,
@@ -151,33 +153,38 @@ class MissingData(Exception):
     def __str__(self):
         return "<MissingData %s>" % index_str(self.solver_name, self.pool_name, self.fold_seed, self.num_folds, self.fold_idx, self.by_game, self.stratified)
 
-def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=False):
+def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified):
     """
     Load the jobid out of the database, creating a new job record if necessary.
     """
-    c = db.cursor()
-    sql = _sql(db, 'select jobid from mle_jobs'
-                   ' where solver_name=%s and pool_name=%s and fold_seed=%s and num_folds=%s and fold_idx=%s and by_game=%s and stratified=%s')
-    c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
-    jobids = c.fetchall()
-    if len(jobids) > 1:
-        raise ValueError('Multiple jobids for %s/%s/%s/%s/%s/%s/%s: %s' % \
-                         (solver_name, pool_name,
-                          fold_seed, num_folds, fold_idx, by_game, stratified,
-                          jobids))
-    elif len(jobids) == 1:
-        return jobids[0][0]
+    db = db or db_connect()
+    for ix in xrange(2):
+        db.start_transaction()
+        c = db.cursor()
+        sql = _sql(db, 'select jobid from mle_jobs'
+                       ' where solver_name=%s and pool_name=%s and fold_seed=%s and num_folds=%s and fold_idx=%s and by_game=%s and stratified=%s')
+        c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
+        jobids = c.fetchall()
+        if len(jobids) > 1:
+            db.commit()
+            raise ValueError('Multiple jobids for %s/%s/%s/%s/%s/%s/%s: %s' % \
+                             (solver_name, pool_name,
+                              fold_seed, num_folds, fold_idx, by_game, stratified,
+                              jobids))
+        elif len(jobids) == 1:
+            db.commit()
+            return jobids[0][0]
 
-    elif recursive:
-        raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s" % \
-                         (solver_name, pool_name,
-                          fold_seed, num_folds, fold_idx, by_game, stratified))
+        elif ix > 0:
+            db.commit()
+            raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s" % \
+                             (solver_name, pool_name,
+                              fold_seed, num_folds, fold_idx, by_game, stratified))
 
-    sql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
+        sql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
                    'values (%s,%s,%s,%s,%s, %s,%s)')
-    c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
-    db.commit()
-    return _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified, recursive=True)
+        c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
+        db.commit()
 
 class MysqlExitWrapper(object):
     """

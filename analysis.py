@@ -84,7 +84,11 @@ def mle_parameter_interval(parameter_name,
         for fold_idx in xrange(max(num_folds, 1)):
             idx_done = [c for c in completed_restarts if c[0]==fold_seed and c[1]==fold_idx]
             try:
-                if not queue_missing or len(idx_done) > 0:
+                if queue_missing=='fast':
+                    # skip the actual computation of the figure
+                    raise MissingData(solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                                      by_game, stratified)
+                elif not queue_missing or len(idx_done) > 0:
                     data.append(mle_param(parameter_name,
                                           solver_name, pool_name, fold_seed, num_folds, fold_idx,
                                           by_game, stratified))
