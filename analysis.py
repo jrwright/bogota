@@ -113,7 +113,7 @@ def mle_parameter_interval(parameter_name,
 
     if missing and not report_intermediate:
         raise missing
-    if missing > 0:
+    if missing > 0 and queue_missing <> 'fast':
         warn("%d/%d rows missing for %s" % (missing, max(len(fold_seeds)*num_folds, 1),
                                             index_str(solver_name, pool_name, fold_seeds, num_folds, [], by_game, stratified)))
     if len(avgs) > 1:
