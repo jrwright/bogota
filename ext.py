@@ -7,6 +7,7 @@ from gambit.qre import ExternalStrategicQREPathTracer
 from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
 from bogota.solver import solver
 from bogota.utils import proportionally_mix_profiles
+import bogota.data #HACK
 
 import logging
 error = logging.getLogger(__name__).error
