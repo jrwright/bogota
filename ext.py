@@ -9,6 +9,8 @@ from bogota.solver import solver
 from bogota.utils import proportionally_mix_profiles
 import bogota.data #HACK
 
+from bogota.cache import NASH_CACHE
+
 import logging
 error = logging.getLogger(__name__).error
 
@@ -38,8 +40,6 @@ def pure_nash(game, eps):
     assert len(eqa) == 1, "%d eqa found" % len(eqa)
     return proportionally_mix_profiles([eps, 1.0-eps],
                                        [game.mixed_strategy_profile(), eqa[0]])
-
-NASH_CACHE = {}
 
 @solver(fittable_parameters= ['eps'],
         parameter_bounds={'eps':(0.0, 1.0)})
