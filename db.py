@@ -186,6 +186,39 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
         c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
         db.commit()
 
+def _create_jobids(solver_name, pool_name, fold_seeds, num_folds, by_game, stratified):
+    with db_connect() as db:
+        c = db.cursor()
+        sql = """
+        select solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified
+          from mle_jobs
+         where solver_name=%s and pool_name=%s and fold_seed in ({seeds}) and num_folds=%s and by_game=%s and stratified=%s
+        """.format(seeds=','.join(map(str,fold_seeds)))
+        sql = _sql(db, sql)
+        c.execute(sql, [solver_name, pool_name, num_folds, by_game, stratified])
+        existing = c.fetchall()
+
+        debug("%d jobids already exist", len(existing))
+
+        ins = []
+        for fold_seed in fold_seeds:
+            for fold_idx in xrange(num_folds):
+                job = (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
+                if job not in existing:
+                    ins.append(job)
+
+        if len(ins) == 0:
+            debug("No jobids to create")
+            return
+
+        info("Creating %d jobids", len(ins))
+        sql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
+                   'values (%s,%s,%s,%s,%s, %s,%s)')
+        debug("jobids: %s", ins) #TEST
+        c.executemany(sql, ins)
+        db.commit()
+
+
 class MysqlExitWrapper(object):
     """
     Provide an `__exit__` method for mysql.connector connections.

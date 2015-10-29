@@ -7,7 +7,7 @@ debug = logging.getLogger(__name__).debug
 from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
-from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver
+from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver, _create_jobids
 from .tasks import fit_fold
 
 def csv_fig(fname, rows,
@@ -79,6 +79,9 @@ def mle_parameter_interval(parameter_name,
     else:
         completed_restarts = []
 
+    if queue_missing == 'fast':
+        _create_jobids(solver_name, pool_name, fold_seeds, num_folds, by_game, stratified)
+
     for fold_seed in fold_seeds:
         data = []
         for fold_idx in xrange(max(num_folds, 1)):
@@ -107,7 +110,8 @@ def mle_parameter_interval(parameter_name,
                 completed_restarts, queued = \
                     fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
                              by_game, stratified,
-                             completed_restarts=completed_restarts, queued=queued)
+                             completed_restarts=completed_restarts, queued=queued,
+                             create_job=(queue_missing<>'fast'))
         if len(data) > 0:
             avgs.append(sum(data)/len(data))
 

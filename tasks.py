@@ -8,6 +8,7 @@ import logging
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 
+from celery import group
 from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver, _ensure_jobid
 import bogota.cfg as cfg
@@ -53,7 +54,8 @@ def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fo
 
 def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
              by_game, stratified,
-             num_restarts=3, queued=None, completed_restarts=None):
+             num_restarts=3, queued=None, completed_restarts=None,
+             create_job=True):
     """
     Fit a single fold, possibly asynchronously depending on configuration.
     Returns immediately if all requested restarts are completed or queued.
@@ -75,7 +77,8 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
         queued = mle_queued_restarts()
     queued_restarts = queued.get((solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified), [])
 
-    create_job = True
+    subtasks = []
+
     for rsx in xrange(num_restarts):
         if (fold_seed, fold_idx, rsx) in completed_restarts or rsx in queued_restarts:
             continue
@@ -88,12 +91,16 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
                               solver_name, pool_name, fold_seed, num_folds, fold_idx,
                               by_game, stratified)
                 create_job = False
-            _fit_fold_task.delay(rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
-                                 by_game, stratified)
+            subtasks.append(_fit_fold_task.s(rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
+                                             by_game, stratified))
         else:
             _fit_fold_task(rsx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
                            by_game, stratified)
         queued_restarts.append(rsx)
+
+    if cfg.app.async and len(subtasks) > 0:
+        g = group(subtasks)
+        g.apply_async()
 
     return completed_restarts, queued
 
@@ -106,7 +113,9 @@ def mle_queued_restarts():
         return {}
 
     i = app.control.inspect()
+    info("Querying active tasks")
     h1 = i.active()
+    info("Querying reserved tasks")
     h2 = i.reserved()
 
     assert h1 is not None and h2 is not None, "Cannot query workers"
