@@ -112,7 +112,7 @@ def mle_parameter_interval(parameter_name,
     if missing > 0:
         warn("%d/%d rows missing for %s" % (missing, max(len(fold_seeds)*num_folds, 1),
                                             index_str(solver_name, pool_name, fold_seeds, num_folds, [], by_game, stratified)))
-    if len(avgs) > 0:
+    if len(avgs) > 1:
         return tdist_confidence_interval(avgs, p_val)
     else:
         raise MissingData(solver_name, pool_name, fold_seeds, num_folds, None, by_game, stratified)
