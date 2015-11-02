@@ -129,13 +129,18 @@ class UniformSimplex(pm.Dirichlet):
 
 
 def posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
-                     iter, burn, thin):
+                     iter, burn, thin, chain=None):
     """
     Return a filename suitable for storing sampling results.
     """
     m = hashlib.md5(prior_rvs_expr)
-    fname = "%s__%s__%s__%d_%d_%d.hdf5" % (predictor_name, pool_name,
-                                           m.hexdigest()[0:4],
-                                           iter, burn, thin)
+    if chain:
+        fname = "%s__%s__%s__%d_%d_%d__%s.hdf5" % (predictor_name, pool_name,
+                                                   m.hexdigest()[0:4],
+                                                   iter, burn, thin, chain)
+    else:
+        fname = "%s__%s__%s__%d_%d_%d.hdf5" % (predictor_name, pool_name,
+                                               m.hexdigest()[0:4],
+                                               iter, burn, thin)
     return fname
 
