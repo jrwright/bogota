@@ -2,6 +2,7 @@
 Tasks that can be potentially queued for offline runs.
 """
 from __future__ import absolute_import
+import os.path
 import sys
 from timeit import default_timer as tick
 import logging
@@ -9,9 +10,63 @@ info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 
 from celery import group
+import pymc as pm
+
 from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver, _ensure_jobid
+from .mc import multinomial_rvs, find_MAP, posterior_dbname
 import bogota.cfg as cfg
+
+@app.task(name='bogota.tasks._sample_posterior_task', ignore_result=True)
+def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
+                           iter, burn, thin, chain):
+    info("Sampling from posterior %s/%s/%s/%d/%d/%d [chain %d]",
+         predictor_name, pool_name, prior_rvs_expr, iter, burn, thin, chain)
+
+    # Construct python objects
+    preimport(predictor_name)
+    preimport(pool_name)
+    pool = eval(pool_name, sys.modules)
+    predictor = eval(predictor_name, sys.modules)
+    prior_rvs = eval(prior_rvs_expr, sys.modules)
+    rvs = multinomial_rvs(pool, predictor, prior_rvs)
+
+    # Connect to backend and create sampler
+    fname = posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
+                             iter, burn, thin, chain)
+
+    if os.path.isfile(fname):
+        db = pm.database.hdf5.load(fname, 'a')
+        completed = len(db.trace(rvs.keys()[0], chain=None)[:]) if db.chains > 0 else 0
+        debug("Loaded '%s' [%d samples in %d chains]", fname, completed, db.chains)
+    else:
+        db = 'hdf5'
+        completed = 0
+
+    if completed >= (iter - burn) / thin:
+        info("Skipping completed chain %d for posterior %s/%s/%s/%d/%d/%d",
+             chain, predictor_name, pool_name, prior_rvs_expr, iter, burn, thin)
+        return
+
+    # Find starting point
+    info("Optimizing MAP")
+    find_MAP(rvs, verbose=False)
+
+    # Sampling chain
+    mc = pm.MCMC(rvs, db=db, dbname=fname, dbmode='a') #TODO compression
+
+    # Burn-in is not restartable
+    if burn > 0 and isinstance(db, str):
+        info("Sampling 1..%d for burn-in", burn)
+        mc.sample(iter=burn, burn=burn, progress_bar=False)
+        debug("Checkpointing after burning %d samples", burn)
+        mc.db.commit()
+
+    # Take actual samples
+    info("Sampling 1..%d (thin=%d)", iter, thin)
+    mc.sample(iter=iter, thin=thin, burn=0, progress_bar=False)
+    mc.db.close()
+    info("Writing results to %s", fname)
 
 @app.task(name='bogota.tasks._fit_fold_task', ignore_result=True)
 def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
