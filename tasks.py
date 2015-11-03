@@ -93,7 +93,7 @@ def sample_posterior(predictor_name, pool_name, prior_rvs_expr,
         queued = posterior_queued_chains()
 
     queued_chains = queued.get((predictor_name, pool_name, prior_rvs_expr,
-                                iter, burn, thin))
+                                iter, burn, thin), [])
 
     subtasks = []
 
