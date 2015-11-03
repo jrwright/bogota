@@ -135,7 +135,7 @@ def posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
     Return a filename suitable for storing sampling results.
     """
     m = hashlib.md5(prior_rvs_expr)
-    if chain:
+    if isinstance(chain, int):
         fname = "%s__%s__%s__%d_%d_%d__%s.hdf5" % (predictor_name, pool_name,
                                                    m.hexdigest()[0:4],
                                                    iter, burn, thin, chain)

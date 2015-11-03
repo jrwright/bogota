@@ -20,9 +20,6 @@ import bogota.cfg as cfg
 @app.task(name='bogota.tasks._sample_posterior_task', ignore_result=True)
 def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
                            iter, burn, thin, chain):
-    info("Sampling from posterior %s/%s/%s/%d/%d/%d [chain %d]",
-         predictor_name, pool_name, prior_rvs_expr, iter, burn, thin, chain)
-
     # Construct python objects
     preimport(predictor_name)
     preimport(pool_name)
@@ -48,12 +45,15 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
              chain, predictor_name, pool_name, prior_rvs_expr, iter, burn, thin)
         return
 
+    info("Sampling from posterior %s/%s/%s/%d/%d/%d [chain %d]",
+         predictor_name, pool_name, prior_rvs_expr, iter, burn, thin, chain)
+
+    # Construct/restore chain
+    mc = pm.MCMC(rvs, db=db, dbname=fname, dbmode='a') #TODO compression
+
     # Find starting point
     info("Optimizing MAP")
     find_MAP(rvs, verbose=False)
-
-    # Sampling chain
-    mc = pm.MCMC(rvs, db=db, dbname=fname, dbmode='a') #TODO compression
 
     # Burn-in is not restartable
     if burn > 0 and isinstance(db, str):
