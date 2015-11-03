@@ -1,6 +1,7 @@
 """
 Support for Bayesian estimation using pymc (version 2).
 """
+import glob
 import hashlib
 import numpy as np
 import pymc as pm
@@ -144,3 +145,28 @@ def posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
                                                iter, burn, thin)
     return fname
 
+
+def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
+                     iter, burn, thin):
+    """
+    Return a list of all the chains for the specified posterior that are
+    "completed" (i.e., have all requested samples completed).
+    """
+    pattern = posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
+                               iter, burn, thin, '*')
+    fnames = glob.glob(pattern)
+    ret = []
+
+    for fname in fnames:
+        ix = fname[:-5].rfind('_')
+        chain = int(fname[ix+1:-5])
+
+        db = pm.database.hdf5.load(fname, 'r')
+        if db.chains > 0:
+            k = db.trace_names[0][0]
+            completed = len(db.trace(k, chain=None)[:])
+            db.close()
+            if completed >= (iter - burn) / thin:
+                ret.append(chain)
+
+    return ret

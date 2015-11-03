@@ -14,7 +14,7 @@ import pymc as pm
 
 from .celeryapp import app
 from .db import mle_restarts, save_mle_params, _solver, _ensure_jobid
-from .mc import multinomial_rvs, find_MAP, posterior_dbname
+from .mc import multinomial_rvs, find_MAP, posterior_dbname, posterior_chains
 import bogota.cfg as cfg
 
 @app.task(name='bogota.tasks._sample_posterior_task', ignore_result=True)
@@ -67,6 +67,85 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
     mc.sample(iter=iter, thin=thin, burn=0, progress_bar=False)
     mc.db.close()
     info("Writing results to %s", fname)
+
+def sample_posterior(predictor_name, pool_name, prior_rvs_expr,
+                     iter, burn, thin, num_chains=1,
+                     queued=None, completed_chains=None):
+    """
+    Draw samples from a model's posterior distribution, possibly
+    asynchronously.
+    Returns immediately is the requested chains are completed or queued.
+    Returns a pair `queued, completed` to enable caching operation.
+    """
+    # Return immediately if all chains located
+    if completed_chains is None:
+        completed_chains = posterior_chains(predictor_name, pool_name, prior_rvs_expr,
+                                            iter, burn, thin)
+
+    all_chains = set(range(num_chains))
+    if all_chains.issubset(completed_chains):
+        debug("All chains completed for posterior %s/%s/%s/%d/%d/%d",
+              predictor_name, pool_name, prior_rvs_expr, iter, burn, thin)
+        return completed_chains, queued
+
+    # Query for queued chains
+    if queued is None:
+        queued = posterior_queued_chains()
+
+    queued_chains = queued.get((predictor_name, pool_name, prior_rvs_expr,
+                                iter, burn, thin))
+
+    subtasks = []
+
+    # Queue up unqueued, uncompleted chains
+    for chx in xrange(num_chains):
+        if chx in completed_chains or chx in queued_chains:
+            continue
+        if cfg.app.async:
+            info("Queueing chain %d for posterior %s/%s/%s/%d/%d/%d",
+                 chx, predictor_name, pool_name, prior_rvs_expr,
+                 iter, burn, thin)
+            subtasks.append(_sample_posterior_task.s(predictor_name, pool_name,
+                                                     prior_rvs_expr,
+                                                     iter, burn, thin, chx))
+        else:
+            _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
+                                   iter, burn, thin, chx)
+        queued_chains.append(chx)
+
+    if cfg.app.async and len(subtasks) > 0:
+        g = group(subtasks)
+        g.apply_async()
+
+    return completed_chains, queued
+
+def posterior_queued_chains():
+    """
+    Query for active and reserved restarts and return a dictionary from
+    fold-keys to lists of queued restart indices.
+    """
+    if not cfg.app.async:
+        return {}
+
+    i = app.control.inspect()
+    info("Querying active tasks")
+    h1 = i.active()
+    info("Querying reserved tasks")
+    h2 = i.reserved()
+
+    assert h1 is not None and h2 is not None, "Cannot query workers"
+
+    ret = {}
+    for h in [h1,h2]:
+        for tasks in h.values():
+            for task in tasks:
+                if task['name'] <> 'bogota.tasks._sample_posterior_task':
+                    continue
+                key = tuple(task['args'][:-1])
+                val = task['args'][-1]
+                ret.get(key, []).append(val)
+
+    return ret
 
 @app.task(name='bogota.tasks._fit_fold_task', ignore_result=True)
 def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fold_idx,
