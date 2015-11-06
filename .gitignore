@@ -5,3 +5,4 @@
 NOTES
 legacy/*
 local.py
+*.hdf5
