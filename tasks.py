@@ -141,9 +141,10 @@ def posterior_queued_chains():
             for task in tasks:
                 if task['name'] <> 'bogota.tasks._sample_posterior_task':
                     continue
-                key = tuple(task['args'][:-1])
-                val = task['args'][-1]
-                ret.get(key, []).append(val)
+                args = eval(task['args'])
+                key = tuple(args[1:])
+                val = args[0]
+                ret[key] = ret.get(key, []) + [val]
 
     return ret
 
@@ -260,9 +261,10 @@ def mle_queued_restarts():
             for task in tasks:
                 if task['name'] <> 'bogota.tasks._fit_fold_task':
                     continue
-                key = tuple(task['args'][1:])
-                val = task['args'][0]
-                ret.get(key, []).append(val)
+                args = eval(task['args'])
+                key = tuple(args[1:])
+                val = args[0]
+                ret[key] = ret.get(key, []) + [val]
 
     return ret
 
