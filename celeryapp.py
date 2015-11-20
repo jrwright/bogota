@@ -15,6 +15,7 @@ if cfg.app.async:
         CELERY_TASK_SERIALIZER='json',
         CELERY_RESULT_SERIALIZER='json',
         CELERY_ACCEPT_CONTENT = ['json'],
+        CELERYD_PREFETCH_MULTIPLIER = 1,
     )
 
     if __name__ == '__main__':
