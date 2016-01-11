@@ -7,9 +7,7 @@ from gambit.qre import ExternalStrategicQREPathTracer
 from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
 from bogota.solver import solver
 from bogota.utils import proportionally_mix_profiles
-import bogota.data #HACK
-
-from bogota.cache import NASH_CACHE
+from bogota.cache import get_eqa, put_eqa, find_key
 
 import logging
 error = logging.getLogger(__name__).error
@@ -47,17 +45,16 @@ def nee(game, eps):
     """
     Return a set of Nash equilibria, each mixed with uniform noise.
     """
-    global NASH_CACHE
-    if game in NASH_CACHE:
-        eqa = NASH_CACHE[game]
+    if find_key(game):
+        eqa = get_eqa(game)
     elif len(game.players) == 2:
         s = ExternalLCPSolver()
         eqa = s.solve(game)
-        NASH_CACHE[game] = eqa
+        put_eqa(game, eqa)
     else:
         s = ExternalGlobalNewtonSolver()
         eqa = s.solve(game)
-        NASH_CACHE[game] = eqa
+        put_eqa(game, eqa)
     assert len(eqa) > 0
     return [proportionally_mix_profiles([eps, 1.0-eps], [game.mixed_strategy_profile(), eqm]) for eqm in eqa]
 

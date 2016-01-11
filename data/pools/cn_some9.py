@@ -1,6 +1,5 @@
-from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile, make_original
-from gambit import Game
-read_game = Game.read_game
+from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile, make_original, read_and_cache_eqa
+read_game = read_and_cache_eqa
 import os.path
 dirname=os.path.dirname(__file__)
 unprofitable=read_game(dirname+'/unprofitable.nfg')

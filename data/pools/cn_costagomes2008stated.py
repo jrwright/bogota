@@ -1,7 +1,6 @@
-from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile
+from bogota.datapool import DataPool, WeightedUncorrelatedProfile, make_profile, read_and_cache_eqa
 from bogota.traceset import TraceSet
-from gambit import Game
-read_game = Game.read_game
+read_game = read_and_cache_eqa
 import os.path
 dirname=os.path.dirname(__file__)
 cn_cgw08_1=read_game(dirname+'/cn_cgw08_1.nfg')

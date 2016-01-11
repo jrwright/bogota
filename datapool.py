@@ -11,6 +11,7 @@ import math
 from numpy import inf, array
 from numpy.random import RandomState
 import gambit
+from bogota.cache import _load_eqa
 from bogota.utils import normalize, make_profile, action_profiles
 
 
@@ -518,3 +519,13 @@ class PeekabooPool(DataPool):
         agents uniformly randomize over their actions.  (For normalization)
         """
         return self.log_likelihood(lambda g, prediction_cache: g.mixed_strategy_profile())
+
+def read_and_cache_eqa(filename):
+    """
+    Read and return a game from `filename`, caching its precomputed equilibria
+    if they exist.
+    """
+    g = gambit.Game.read_game(filename)
+    _load_eqa(g, filename + '.eqa')
+    return g
+
