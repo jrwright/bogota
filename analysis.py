@@ -45,6 +45,19 @@ def csv_fig(fname, rows,
     return missing
 
 
+def mle_avg_solver(solver_name, pool_name, fold_seeds, num_folds,
+                   by_game, stratified):
+    """
+    Return a solver initialized to the average fitted parameters.
+    """
+    s = _solver(solver_name)
+    for p in s.fittable_parameters:
+        val = mle_parameter_interval(p, solver_name, pool_name, fold_seeds, num_folds,
+                                     by_game, stratified)
+        s.parameters[p] = val
+
+    return s
+
 def mle_solver(solver_name, pool_name, fold_seeds, num_folds, fold_idx,
                by_game, stratified):
     """
