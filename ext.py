@@ -8,6 +8,7 @@ from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGloba
 from bogota.solver import solver
 from bogota.utils import proportionally_mix_profiles
 from bogota.cache import get_eqa, put_eqa, find_key
+import bogota.data # HACK to force the module to load for fitting
 
 import logging
 error = logging.getLogger(__name__).error
