@@ -162,11 +162,19 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
         c = db.cursor()
         c.execute("START TRANSACTION")
         sql = _sql(db, 'select jobid from mle_jobs'
-                       ' where solver_name=%s and pool_name=%s and fold_seed=%s and num_folds=%s and fold_idx=%s and by_game=%s and stratified=%s')
+                       ' where solver_name=%s and pool_name=%s and fold_seed=%s and num_folds=%s and fold_idx=%s and by_game=%s and stratified=%s order by jobid asc')
         c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
         jobids = c.fetchall()
         if len(jobids) > 1:
             db.commit()
+            warn('Multiple jobids for %s/%s/%s/%s/%s/%s/%s: %s' % \
+                 (solver_name, pool_name,
+                  fold_seed, num_folds, fold_idx, by_game, stratified,
+                jobids))
+            # If there are multiple identical jobids, then everyone will pick
+            # the OLDEST, since the client that created the later one is likely
+            # to have been confused.
+            return jobids[0][0]  
             raise ValueError('Multiple jobids for %s/%s/%s/%s/%s/%s/%s: %s' % \
                              (solver_name, pool_name,
                               fold_seed, num_folds, fold_idx, by_game, stratified,
