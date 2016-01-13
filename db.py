@@ -222,7 +222,6 @@ def _create_jobids(solver_name, pool_name, fold_seeds, num_folds, by_game, strat
         info("Creating %d jobids", len(ins))
         sql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
                    'values (%s,%s,%s,%s,%s, %s,%s)')
-        debug("jobids: %s", ins) #TEST
         c.executemany(sql, ins)
         db.commit()
 
@@ -286,7 +285,7 @@ def create_schema(db):
     """
     if db.__class__.__module__ == 'mysql.connector.connection':
         sql = (sql % 'auto_increment')
-        sql += 'ENGINE=InnoDB'
+        sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
     else:
         sql = (sql % 'autoincrement')
     c.execute(sql)
@@ -306,7 +305,7 @@ def create_schema(db):
     primary key (jobid, restart_idx, name))
     """)
     if db.__class__.__module__ == 'mysql.connector':
-        sql += 'ENGINE=InnoDB'
+        sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
     c.execute(sql)
 
     sql = _sql(db, """
@@ -317,7 +316,7 @@ def create_schema(db):
     primary key (jobid))
     """)
     if db.__class__.__module__ == 'mysql.connector':
-        sql += 'ENGINE=InnoDB'
+        sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
     c.execute(sql)
 
     db.commit()
