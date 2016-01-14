@@ -28,7 +28,7 @@ def noisy_introspection(game, lam0, tel, thresh=1e-6, return_steps=False, max_st
     assert tel > 1.0
 
     def prediction(steps):
-        p = game.mixed_profile()
+        p = game.mixed_strategy_profile()
         for k in xrange(steps, -1, -1):
             lam = (tel**(-k)) * lam0
             p = logit_br_all(p, lam)
@@ -37,7 +37,7 @@ def noisy_introspection(game, lam0, tel, thresh=1e-6, return_steps=False, max_st
         return norm([x1-x2 for (x1,x2) in zip(p1,p2)])
 
     K = 0
-    p1 = game.mixed_profile()
+    p1 = game.mixed_strategy_profile()
     p2 = prediction(K)
     while delta(p1,p2) > thresh:
         K += 1
