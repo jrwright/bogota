@@ -7,8 +7,7 @@ Implement classes for representing data pools.
 # will know what "ex_ante actions" were taken by each "ex_ante player", but we
 # won't know which type was which.
 
-import math
-from numpy import inf, array
+from numpy import inf, array, log
 from numpy.random import RandomState
 import gambit
 from bogota.cache import _load_eqa
@@ -56,6 +55,14 @@ class DataPool(object):
         the log likelihood of the data pool's data given the predictions of 'predictor'.
         """
         return sum([ wp.log_likelihood(predictor(wp.game)) for wp in self._weighted_profiles ])
+
+    def neg_ppd_cross_entropy(self, predictor):
+        """
+        Given a callable 'predictor' that maps from a game to a predicted profile
+        of play, return the negative of the cross-entropy between the posterior
+        predictive distribution and the predicted distribution.
+        """
+        return sum([ wp.neg_ppd_cross_entropy(predictor(wp.game)) for wp in self._weighted_profiles ])
 
     def uniform_log_likelihood(self):
         """
@@ -369,7 +376,7 @@ class WeightedUncorrelatedProfile(object):
         for (m,p) in zip(self.denormalized_profile(), prediction):
             if m > 0.0 and p > 0.0:
                 try:
-                    ll += m*math.log(p)
+                    ll += m*log(p)
                 except:
                     print "*** m=%s\tp=%s" % (m,p)
                     raise
@@ -378,9 +385,40 @@ class WeightedUncorrelatedProfile(object):
                 return -inf
         return ll
 
+    def neg_ppd_cross_entropy(self, prediction):
+        """
+        Return negative of the cross entropy between the distribution 'prediction'
+        and the posterior predictive distribution of the empirical distribution
+        (assuming a uniform prior over distributions).
+        """
+        H = 0.0
+        for p,q in zip(self.ppd_profile(), prediction):
+            if p > 0.0 and q > 0.0:
+                H += p * log(q)
+            elif p > 0.0:
+                # Zero-probability event occurred
+                return -inf
+        return H
+
     @property
     def game(self):
         return self._profile.game
+
+    def ppd_profile(self):
+        """
+        Return a profile containing the posterior predictive distribution of the
+        empirical distribution (assuming a uniform prior over distributions).
+        """
+        dnp = self.denormalized_profile()
+        for pl in dnp.game.players:
+            Z = sum(dnp[pl])
+            if Z == 0.0:
+                continue
+            L = len(dnp[pl])
+            for ix in xrange(L):
+                dnp[pl][ix] = (dnp[pl][ix] + 1.0) / (Z + L)
+
+        return dnp
 
     def denormalized_profile(self):
         """
@@ -409,7 +447,7 @@ class WeightedUncorrelatedProfile(object):
                     np[i] = 0.0
             return np
         else:
-            return self._profile.copy()
+            return self._profile.copy()        
 
     @property
     def n(self):
