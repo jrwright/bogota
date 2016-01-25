@@ -7,7 +7,7 @@ import ConfigParser
 dirname=os.path.dirname(__file__)
 if len(dirname) == 0:
     dirname = "."
-config = ConfigParser.ConfigParser()
+config = ConfigParser.ConfigParser(os.environ)
 config.read(["%s/defaults.cfg" % dirname, os.path.expanduser('~/.bogotarc')])
 
 class SectionWrapper(object):

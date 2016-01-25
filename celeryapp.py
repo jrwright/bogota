@@ -18,9 +18,6 @@ if cfg.app.async:
         CELERYD_PREFETCH_MULTIPLIER = 1,
     )
 
-    if __name__ == '__main__':
-        app.worker_main()
-
 else:
     class DummyApp(object):
         def task(fn, *args, **kwArgs):
@@ -30,5 +27,18 @@ else:
 
     app = DummyApp()
 
+def setup_logs():
+    import logging
+    logger = logging.getLogger()
+    level = (cfg.app.loglevel or logging.INFO)
+    fh = logging.FileHandler(cfg.app.logfile)
+    fh.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.setLevel(min(logger.level, level))
+
 if __name__ == '__main__':
+    if cfg.app.logfile is not None:
+        setup_logs()
     app.worker_main()
