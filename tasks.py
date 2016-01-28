@@ -20,6 +20,8 @@ import bogota.cfg as cfg
 @app.task(name='bogota.tasks._sample_posterior_task', ignore_result=True)
 def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
                            iter, burn, thin, chain):
+    info("Setting up for chain %d of posterior %s/%s/%s/%d/%d/%d",
+         chain, predictor_name, pool_name, prior_rvs_expr, iter, burn, thin)
     # Construct python objects
     preimport(predictor_name)
     preimport(pool_name)
