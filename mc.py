@@ -20,6 +20,8 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}, d
     'fittable_parameters' should be a list of pymc random variables, with
     names that correspond to the appropriate arguments of 'predictor'.
     **WARNING**: These variables will be destructively updated!
+    (This may optionally be a dictionary, in which case the variables' names
+    will be ignored and their dictionary keys will be used instead.)
 
     'fixed_parameters' should be a dict mapping from argument name to a value;
     these values will not be fit.  (This is a convenience parameter to make
@@ -31,7 +33,10 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}, d
     Returns a dictionary from variable name to variable of all the fittable
     parameters, plus a new set of variables called `obs`.
     """
-    rvs = dict((str(p), p) for p in fittable_parameters)
+    if isinstance(fittable_parameters, dict):
+        rvs = dict(fittable_parameters.items())
+    else:
+        rvs = dict((str(p), p) for p in fittable_parameters)
     args = dict(fixed_parameters.items() + rvs.items())
 
     dnps = []
