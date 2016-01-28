@@ -195,3 +195,6 @@ def test_kl_divergence():
     assert near(0.0, pool.kl_divergence(q0))
     assert near(d1.kl_divergence(predictor) + d2.kl_divergence(predictor),
                 pool.kl_divergence(predictor))
+
+    assert pool.kl_divergence(predictor) > 0.0
+    
