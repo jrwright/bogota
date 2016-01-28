@@ -14,6 +14,7 @@ def csv_fig(fname, rows,
             row_headings=None, col_headings=None,
             **commonKwArgs):
     missing = 0
+
     with console_or_file(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
         defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
@@ -26,6 +27,9 @@ def csv_fig(fname, rows,
         for row, rh in zip(rows, row_headings or [None]*len(rows)):
             csvrow = []
             for cell in row:
+                if isinstance(cell, str):
+                    csvrow.append(cell)
+                    continue
                 args = dict(defaults)
                 args.update(commonKwArgs)
                 args.update(cell)
