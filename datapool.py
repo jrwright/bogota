@@ -56,6 +56,14 @@ class DataPool(object):
         """
         return sum([ wp.log_likelihood(predictor(wp.game)) for wp in self._weighted_profiles ])
 
+    def kl_divergence(self, predictor):
+        """
+        Given a callable 'predictor' that maps from a game to a predicted profile
+        of play, return the sum across games of KL-divergences between the true
+        empirical distribution of each game and the predicted distribution.
+        """
+        return sum([ wp.kl_divergence(predictor(wp.game)) for wp in self._weighted_profiles ])
+
     def neg_ppd_cross_entropy(self, predictor):
         """
         Given a callable 'predictor' that maps from a game to a predicted profile
@@ -384,6 +392,20 @@ class WeightedUncorrelatedProfile(object):
                 # Zero-probability event occurred
                 return -inf
         return ll
+
+    def kl_divergence(self, prediction):
+        """
+        Return KL(P||Q), where P is the empirical distribution of play, and Q is
+        'prediction'.
+        """
+        ret = 0.0
+        np = self.normalized_profile()
+        for i in xrange(len(np)):
+            if np[i] <= 0.0:
+                continue
+            ret += np[i] * (log(np[i]) - log(prediction[i]))
+
+        return ret
 
     def neg_ppd_cross_entropy(self, prediction):
         """

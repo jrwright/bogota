@@ -175,3 +175,23 @@ def test_neg_ppd_cross_entropy():
     pool = datapool.DataPool([wp1, wp2])
     assert near(pool.neg_ppd_cross_entropy(predictor),
                 wp1.neg_ppd_cross_entropy(predictor(0.0)) + wp2.neg_ppd_cross_entropy(predictor(0.0)))
+
+def test_kl_divergence():
+    wp1 = datapool.WeightedUncorrelatedProfile(None, profile([1.0, 0.0, 0.0, 0.0]))
+    wp2 = datapool.WeightedUncorrelatedProfile(None, profile([100.0, 0.0, 0.0, 0.0]))
+
+    d1 = datapool.DataPool([wp1])
+    d2 = datapool.DataPool([wp2])
+
+    q0 = lambda x: profile([1.0, 0.0, 1.0, 0.0])
+    predictor = lambda x: profile([0.75, 0.25, 0.75, 0.25])
+
+    assert near(0.0, d1.kl_divergence(q0))
+    assert near(0.0, d2.kl_divergence(q0))
+
+    assert near(d1.kl_divergence(q0), d2.kl_divergence(q0))
+
+    pool = datapool.DataPool([wp1, wp2])
+    assert near(0.0, pool.kl_divergence(q0))
+    assert near(d1.kl_divergence(predictor) + d2.kl_divergence(predictor),
+                pool.kl_divergence(predictor))
