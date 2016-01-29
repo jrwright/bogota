@@ -1,6 +1,7 @@
 """
 Miscellaneous utilities.
 """
+import gambit
 from numbers import Number
 import sys
 import numpy as np
@@ -212,3 +213,17 @@ def near(x,y, tol=1e-6):
         return True
     except TypeError:
         return abs(x-y) < tol
+
+def copy_table(old_game):
+    """
+    Return a new game with the same payoffs as 'old_game'.
+    """
+    g = gambit.Game.new_table([len(pl.strategies) for pl in old_game.players])
+    for ix in fast_contingencies(old_game):
+        for plx in xrange(len(g.players)):
+            g[ix][plx] = old_game[ix][plx]
+
+    g.title = old_game.title + " copy"
+    return g
+
+    
