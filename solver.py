@@ -143,6 +143,8 @@ class Solver(object):
 
         kw = {}
         kwargs = dict(kwargs)
+        kwargs.update(self.fit_args)
+        
         def scalar_target(x):
             self.parameters[0] = x
             return self.penalized_objective(objective)
