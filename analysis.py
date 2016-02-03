@@ -20,7 +20,7 @@ def csv_fig(fname, rows,
         defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
 
         if col_headings:
-            cooked_headings = reduce(lambda x,y: x+y, ([ch, 'err'] for ch in col_headings))
+            cooked_headings = reduce(lambda x,y: x+y, ([ch, '        err'] for ch in col_headings))
             cooked_headings[0] = "# " + cooked_headings[0]
             f.writerow(cooked_headings)
 
