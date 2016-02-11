@@ -8,6 +8,7 @@ from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
 from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver, _create_jobids
+from .mc import posterior_samples
 from .tasks import fit_fold
 
 def csv_fig(fname, rows,
@@ -154,6 +155,34 @@ def tdist_confidence_interval(avgs, p_val):
     width = tdist.ppf(q, n-1) / sqrt(n)
     return (avg, width*std(avgs))
 
+
+def posterior_cdf_fig(fname,
+                      predictor_name, pool_name, prior_rvs_expr,
+                      iter, burn, thin, param_name, prefix=None,
+                      key=lambda x:x):
+    """
+    Generate a file in 'fname' containing an empirical CDF of the specified
+    parameter of the specified posterior.  
+    """
+    xs = posterior_samples(predictor_name, pool_name, prior_rvs_expr,
+                           iter, burn, thin, param_name, prefix)
+    with console_or_file(fname, 'wt') as f:
+        f.write("# Val\tpct\n")
+        for x, pct in cdf(map(key, xs)):
+            f.write("%f\t%f\n" % (x, pct))
+
+def cdf(xs):
+    xs = sorted(xs)
+    n = 1.0 / float(len(xs))
+
+    mass = 0.0
+    ret = []
+    for x in xs:
+        mass += n
+        ret.append((x, mass))
+
+    return ret
+
 # =================================== Utils ===================================
 
 class NullExit(object):
@@ -177,3 +206,12 @@ def console_or_file(fname, arg=None):
         return NullExit(fname)
     else:
         return open(fname, arg)
+
+def elm(ix):
+    """
+    Helper key for extracting elements of multidimensional rvs.
+    """
+    if ix == 0:
+        return lambda vec: max(0.0, 1.0 - sum(vec))
+    else:
+        return lambda vec: vec[ix - 1]
