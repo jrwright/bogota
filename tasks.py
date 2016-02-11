@@ -83,6 +83,7 @@ def sample_posterior(predictor_name, pool_name, prior_rvs_expr,
     if completed_chains is None:
         completed_chains = posterior_chains(predictor_name, pool_name, prior_rvs_expr,
                                             iter, burn, thin)
+        debug("Completed chains: %s" % completed_chains)
 
     all_chains = set(range(num_chains))
     if all_chains.issubset(completed_chains):

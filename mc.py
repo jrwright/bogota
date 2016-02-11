@@ -3,6 +3,9 @@ Support for Bayesian estimation using pymc (version 2).
 """
 import glob
 import hashlib
+import logging
+debug = logging.getLogger(__name__).debug
+
 import numpy as np
 import pymc as pm
 
@@ -135,32 +138,37 @@ class UniformSimplex(pm.Dirichlet):
 
 
 def posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
-                     iter, burn, thin, chain=None):
+                     iter, burn, thin, chain=None, prefix=None):
     """
     Return a filename suitable for storing sampling results.
     """
     m = hashlib.md5(prior_rvs_expr)
-    if isinstance(chain, int):
-        fname = "%s__%s__%s__%d_%d_%d__%s.hdf5" % (predictor_name, pool_name,
-                                                   m.hexdigest()[0:4],
-                                                   iter, burn, thin, chain)
-    else:
+    if chain is None:
         fname = "%s__%s__%s__%d_%d_%d.hdf5" % (predictor_name, pool_name,
                                                m.hexdigest()[0:4],
                                                iter, burn, thin)
+    else:
+        fname = "%s__%s__%s__%d_%d_%d__%s.hdf5" % (predictor_name, pool_name,
+                                                   m.hexdigest()[0:4],
+                                                   iter, burn, thin, chain)
+    if prefix is not None:
+        fname = "%s/%s" % (prefix, fname)
     return fname
 
-
-def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
-                     iter, burn, thin):
+def posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
+                  iter, burn, thin, prefix=None):
     """
-    Return a list of all the chains for the specified posterior that are
-    "completed" (i.e., have all requested samples completed).
+    Returns a dictionary mapping from chain id to database object for the
+    specified posterior.  If 'prefix' is specified it will be prepended to the
+    database name.  Empty dbs are skipped.
+
+    *NOTE* Closing the returned database is the caller's responsibility!
     """
     pattern = posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
-                               iter, burn, thin, '*')
+                               iter, burn, thin, '*', prefix)
+    debug("Scanning for files matching '%s'" % pattern)
     fnames = glob.glob(pattern)
-    ret = []
+    ret = {}
 
     for fname in fnames:
         ix = fname[:-5].rfind('_')
@@ -168,10 +176,41 @@ def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
 
         db = pm.database.hdf5.load(fname, 'r')
         if db.chains > 0:
-            k = db.trace_names[0][0]
-            completed = len(db.trace(k, chain=None)[:])
-            db.close()
-            if completed >= (iter - burn) / thin:
-                ret.append(chain)
+            ret[chain] = db
 
     return ret
+
+def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
+                     iter, burn, thin, prefix=None):
+    """
+    Return a list of ids for all the chains for the specified posterior that
+    are "completed" (i.e., have all requested samples completed).
+    """
+    target = (iter - burn) / thin
+    h = posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
+                        iter, burn, thin, prefix)
+    ret = []
+    for chain, db in h.items():
+        k = db.trace_names[0][0]
+        completed = len(db.trace(k, chain=None)[:])
+        db.close()
+        debug("chain %s: %d/%d completed" % (chain, completed, target))
+        if completed >= target:
+            ret.append(chain)
+
+    return ret
+
+def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
+                      iter, burn, thin, param_name, prefix=None):
+    """
+    Return an array of all samples for the specified parameter of the specified
+    posterior.
+    """
+    h = posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
+                      iter, burn, thin, prefix)
+    ret = []
+    for db in h.values():
+        ret += list(db.trace(param_name, chain=None)[:])
+        db.close()
+
+    return np.array(ret)
