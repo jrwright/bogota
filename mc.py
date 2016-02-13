@@ -9,7 +9,7 @@ debug = logging.getLogger(__name__).debug
 import numpy as np
 import pymc as pm
 
-def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}, debug=False):
+def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}):
     """
     Construct a pymc model of the data in 'pool' based on the function
     'predictor'.  The observation counts in each weighted profile are assumed
@@ -30,9 +30,6 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}, d
     these values will not be fit.  (This is a convenience parameter to make
     currying unnecessary).
 
-    When 'debug' is True, prints the parameters that will be assigned to every
-    observation variable before assigning them.
-
     Returns a dictionary from variable name to variable of all the fittable
     parameters, plus a new set of variables called `obs`.
     """
@@ -41,6 +38,8 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}, d
     else:
         rvs = dict((str(p), p) for p in fittable_parameters)
     args = dict(fixed_parameters.items() + rvs.items())
+
+    debug("Constructing RVs for predictor '%s'", predictor)
 
     dnps = []
     for wp in pool.weighted_profiles:
@@ -52,10 +51,6 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}, d
     @pm.deterministic
     def prediction(args = args):
         return [predictor(dnp.player.game, **args)[dnp.player] for dnp in dnps]
-
-    if debug:
-        for (idx, dnp) in enumerate(dnps):
-            print "observations_%d" % idx, sum(dnp), prediction[idx].value, dnp
 
     obs = [ pm.Multinomial("observations_%d" % idx,
                            n=sum(dnp),

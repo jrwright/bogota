@@ -8,7 +8,11 @@ from timeit import default_timer as tick
 import logging
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
+warning = logging.getLogger(__name__).warning
 
+import json
+import base64
+import redis
 from celery import group
 import pymc as pm
 
@@ -130,24 +134,15 @@ def posterior_queued_chains():
     if not cfg.app.async:
         return {}
 
-    i = app.control.inspect()
-    info("Querying active tasks")
-    h1 = i.active()
-    info("Querying reserved tasks")
-    h2 = i.reserved()
-
-    assert h1 is not None and h2 is not None, "Cannot query workers"
-
     ret = {}
-    for h in [h1,h2]:
-        for tasks in h.values():
-            for task in tasks:
-                if task['name'] <> 'bogota.tasks._sample_posterior_task':
-                    continue
-                args = eval(task['args'])
-                key = tuple(args[1:])
-                val = args[0]
-                ret[key] = ret.get(key, []) + [val]
+    tasks = all_queued_tasks()
+    for task in tasks:
+        if task['name'] <> 'bogota.tasks._sample_posterior_task':
+            continue
+        args = task['args']
+        key = tuple(args[0:-1])
+        val = args[-1]
+        ret[key] = ret.get(key, []) + [val]
 
     return ret
 
@@ -250,24 +245,15 @@ def mle_queued_restarts():
     if not cfg.app.async:
         return {}
 
-    i = app.control.inspect()
-    info("Querying active tasks")
-    h1 = i.active()
-    info("Querying reserved tasks")
-    h2 = i.reserved()
-
-    assert h1 is not None and h2 is not None, "Cannot query workers"
-
+    tasks = all_queued_tasks()
     ret = {}
-    for h in [h1,h2]:
-        for tasks in h.values():
-            for task in tasks:
-                if task['name'] <> 'bogota.tasks._fit_fold_task':
-                    continue
-                args = eval(task['args'])
-                key = tuple(args[1:])
-                val = args[0]
-                ret[key] = ret.get(key, []) + [val]
+    for task in tasks:
+        if task['name'] <> 'bogota.tasks._fit_fold_task':
+            continue
+        args = eval(task['args'])
+        key = tuple(args[1:])
+        val = args[0]
+        ret[key] = ret.get(key, []) + [val]
 
     return ret
 
@@ -285,3 +271,37 @@ def preimport(name):
             dotx = name.find('.', dotx+1)
     except ImportError:
         pass
+
+def all_queued_tasks():
+    i = app.control.inspect()
+    info("Querying active tasks")
+    h1 = i.active()
+    if h1 is None:
+        warning("Cannot query active tasks")
+        h1 = {}
+
+    info("Querying reserved tasks")
+    h2 = i.reserved()
+    if h2 is None:
+        warning("Cannot query reserved tasks")
+        h2 = {}
+
+    info("Querying queued tasks")
+    qt = backend_queued_tasks()
+
+    tasks = qt
+    for vs in h1.values() + h2.values():
+        for v in vs:
+            tasks.append({'name':v['name'], 'args':eval(v['args'])})
+
+    return tasks
+
+def backend_queued_tasks(url=cfg.app.backend):
+    r = redis.StrictRedis.from_url(url)
+    tasks = []
+    for x in r.lrange('celery', 0, -1):
+        j = json.loads(x)
+        decoded = base64.b64decode(j['body'])
+        task = json.loads(decoded)
+        tasks.append({'name':task['task'], 'args':task['args']})
+    return tasks

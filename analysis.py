@@ -3,7 +3,7 @@ import csv
 import logging
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
-
+warning = logging.getLogger(__name__).warning
 from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
@@ -166,6 +166,10 @@ def posterior_cdf_fig(fname,
     """
     xs = posterior_samples(predictor_name, pool_name, prior_rvs_expr,
                            iter, burn, thin, param_name, prefix)
+    if len(xs) == 0:
+        warning("Skipping '%s', no samples found" % fname)
+        return
+
     with console_or_file(fname, 'wt') as f:
         f.write("# Val\tpct\n")
         for x, pct in cdf(map(key, xs)):
