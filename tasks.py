@@ -135,7 +135,7 @@ def posterior_queued_chains():
         return {}
 
     ret = {}
-    tasks = all_queued_tasks()
+    tasks = all_pending_tasks()
     for task in tasks:
         if task['name'] <> 'bogota.tasks._sample_posterior_task':
             continue
@@ -245,7 +245,7 @@ def mle_queued_restarts():
     if not cfg.app.async:
         return {}
 
-    tasks = all_queued_tasks()
+    tasks = all_pending_tasks()
     ret = {}
     for task in tasks:
         if task['name'] <> 'bogota.tasks._fit_fold_task':
@@ -272,7 +272,7 @@ def preimport(name):
     except ImportError:
         pass
 
-def all_queued_tasks():
+def all_pending_tasks():
     i = app.control.inspect()
     info("Querying active tasks")
     h1 = i.active()
@@ -287,7 +287,7 @@ def all_queued_tasks():
         h2 = {}
 
     info("Querying queued tasks")
-    qt = backend_queued_tasks()
+    qt = queued_tasks()
 
     tasks = qt
     for vs in h1.values() + h2.values():
@@ -296,7 +296,7 @@ def all_queued_tasks():
 
     return tasks
 
-def backend_queued_tasks(url=cfg.app.backend):
+def queued_tasks(url=cfg.app.backend):
     r = redis.StrictRedis.from_url(url)
     tasks = []
     for x in r.lrange('celery', 0, -1):
