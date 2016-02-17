@@ -250,7 +250,7 @@ def mle_queued_restarts():
     for task in tasks:
         if task['name'] <> 'bogota.tasks._fit_fold_task':
             continue
-        args = eval(task['args'])
+        args = task['args']
         key = tuple(args[1:])
         val = args[0]
         ret[key] = ret.get(key, []) + [val]
