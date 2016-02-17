@@ -176,12 +176,15 @@ def posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
     return ret
 
 def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
-                     iter, burn, thin, prefix=None):
+                     iter, burn, thin, prefix=None, target=None):
     """
     Return a list of ids for all the chains for the specified posterior that
-    are "completed" (i.e., have all requested samples completed).
+    are "completed" (i.e., have all requested samples completed).  If 'target'
+    is specified, then it will be used as the notion of completed; otherwise
+    iter/thin.
     """
-    target = (iter - burn) / thin
+    if target is None:
+        target = iter / thin
     h = posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
                         iter, burn, thin, prefix)
     ret = []
@@ -205,7 +208,7 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
                       iter, burn, thin, prefix)
     ret = []
     for db in h.values():
-        ret += list(db.trace(param_name, chain=None)[:])
+        ret += list(x for x in db.trace(param_name, chain=None) if np.isfinite(x))
         db.close()
 
     return np.array(ret)
