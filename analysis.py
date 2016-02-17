@@ -4,7 +4,6 @@ import logging
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 warning = logging.getLogger(__name__).warning
-from warnings import warn
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
 from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver, _create_jobids
@@ -136,7 +135,7 @@ def mle_parameter_interval(parameter_name,
     if missing and not report_intermediate:
         raise missing
     if missing > 0 and queue_missing <> 'fast':
-        warn("%d/%d rows missing for %s" % (missing, max(len(fold_seeds)*num_folds, 1),
+        warning("%d/%d rows missing for %s" % (missing, max(len(fold_seeds)*num_folds, 1),
                                             index_str(solver_name, pool_name, fold_seeds, num_folds, [], by_game, stratified)))
     if len(avgs) > 1:
         return tdist_confidence_interval(avgs, p_val)
