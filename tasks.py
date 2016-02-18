@@ -29,6 +29,7 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
     # Construct python objects
     preimport(predictor_name)
     preimport(pool_name)
+    preimport(prior_rvs_expr)
     pool = eval(pool_name, sys.modules)
     predictor = eval(predictor_name, sys.modules)
     prior_rvs = eval(prior_rvs_expr, sys.modules)
