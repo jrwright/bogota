@@ -208,7 +208,7 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
                       iter, burn, thin, prefix)
     ret = []
     for db in h.values():
-        ret += list(x for x in db.trace(param_name, chain=None) if np.isfinite(x))
+        ret += list(x for x in db.trace(param_name, chain=None) if np.isfinite(x).all())
         db.close()
 
     return np.array(ret)
