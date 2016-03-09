@@ -10,7 +10,7 @@ Implement classes for representing data pools.
 from numpy import inf, array, log
 from numpy.random import RandomState
 import gambit
-from bogota.cache import _load_eqa
+from bogota.cache import _load_eqa, _load_qres
 from bogota.utils import normalize, make_profile, action_profiles
 
 
@@ -587,5 +587,6 @@ def read_and_cache_eqa(filename):
     """
     g = gambit.Game.read_game(filename)
     _load_eqa(g, filename + '.eqa')
+    _load_qres(g, filename + '.qre')
     return g
 
