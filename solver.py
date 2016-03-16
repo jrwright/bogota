@@ -345,6 +345,7 @@ class GridSolver(object):
         self.fittable_parameters = [parameter_name]
         self.parameter_values = sorted(parameter_values)
         self.parameters = ParametersWrapper(self)
+        self.fit_args = {}
         setattr(self, parameter_name, parameter_values[0])
         
     def __call__(self, game):
