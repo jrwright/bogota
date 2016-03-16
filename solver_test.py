@@ -11,8 +11,3 @@ def test_fit():
     assert near(s.x, 1.5)
     assert near(s.y, -10)
 
-def main():
-    test_fit()
-
-if __name__ == '__main__':
-    main()

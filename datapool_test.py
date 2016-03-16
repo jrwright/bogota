@@ -141,18 +141,18 @@ def test_divide_folds():
 
 def test_divide_folds_gamewise_stratified(noassert=False):
     def new_game(s,n,d=0):
-        g = gambit.new_table([2,2])
+        g = gambit.Game.new_table([2,2])
         g[0,0][0] = n
         g[0,0][1] = d
         g.title = "bogota.datapool_test.stratum_%d.g_%d" % (s,n)
         return g
 
-    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j).mixed_profile()) for i in xrange(3) for j in xrange(20-i)]
+    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j).mixed_strategy_profile()) for i in xrange(3) for j in xrange(20-i)]
     pool = datapool.DataPool(wps)
     folds = pool._divide_folds_gamewise(5, 12345, True)
     assert noassert or sum(map(len, folds)) == len(wps)
 
-    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j,i).mixed_profile()) for i in xrange(3) for j in xrange(20-i)]
+    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j,i).mixed_strategy_profile()) for i in xrange(3) for j in xrange(20-i)]
     pool = datapool.DataPool(wps)
     folds = pool._divide_folds_gamewise(5, 12345, True)
     assert noassert or sum(map(len, folds)) == len(wps)
