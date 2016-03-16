@@ -38,7 +38,7 @@ def qre(game, lam, tol=0.0005):
 class _QRE_GridSolver(GridSolver):
     def __init__(self):
         LAM = list(linspace(0.0, 1.0, 1001)) + list(linspace(1.1, 10.0, 90))
-        super(_QRE_GridSolver, self).__init__(qre, LAM)
+        super(_QRE_GridSolver, self).__init__(qre, 'lam', LAM)
 qre.GridSolver = _QRE_GridSolver
 
 
