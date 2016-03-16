@@ -338,3 +338,36 @@ class ParametersWrapper(object):
         return len(self.target.fittable_parameters)
     def __repr__(self):
         return str(list(self))
+
+class GridSolver(object):
+    def __init__(self, fn, parameter_name, parameter_values):
+        self.fn = fn
+        self.fittable_parameters = [parameter_name]
+        self.parameter_values = sorted(parameter_values)
+        self.parameters = ParametersWrapper(self)
+        setattr(self, parameter_name, parameter_values[0])
+        
+    def __call__(self, game):
+        return self.predict(game)
+
+    def fit(self, objective):
+        best_obj = None
+        best_param = None
+        for param in self.parameter_values:
+            self.parameters[0] = param
+            obj = objective(self.predict)
+            if best_obj is None or obj > best_obj:
+                best_obj = obj
+                best_param = param
+
+        self.parameters[0] = best_param
+        return [best_param]
+
+    def predict(self, game, prediction_cache=None):
+        if prediction_cache is not None:
+            warn("%s.predict: Ignoring prediction cache value" % self.__class__.__name__)
+        return self.fn(game, self.parameters[0])
+
+    def random_start(self, rng=RandomState()):
+        warn("%s.random_start: not implemented for grid solver"% self.__class__.__name__)
+        pass

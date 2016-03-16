@@ -2,10 +2,10 @@
 Solver support for external solvers (QRE and Nash equilibrium).
 """
 from __future__ import absolute_import
-from numpy import inf
+from numpy import inf, linspace
 from gambit.qre import ExternalStrategicQREPathTracer
 from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
-from bogota.solver import solver
+from bogota.solver import solver, GridSolver
 from bogota.utils import proportionally_mix_profiles
 from bogota.cache import get_eqa, put_eqa, find_eqm_key, find_qre_key, get_qre, put_qres
 import bogota.data # HACK to force the module to load for fitting
@@ -34,6 +34,12 @@ def qre(game, lam, tol=0.0005):
     except:
         error("Exception during qre(%s,%f)", game.title, lam)
         raise
+
+class _QRE_GridSolver(GridSolver):
+    def __init__(self):
+        super(_QRE_GridSolver, self).__init__(qre, linspace(0.0, 1.0, 1001))
+qre.GridSolver = _QRE_GridSolver
+
 
 @solver(fittable_parameters= ['eps'],
         parameter_bounds={'eps':(0.0, 1.0)})
