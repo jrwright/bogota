@@ -161,8 +161,8 @@ def posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
     """
     pattern = posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
                                iter, burn, thin, '*', prefix)
-    debug("Scanning for files matching '%s'" % pattern)
     fnames = glob.glob(pattern)
+    debug("%d files match '%s'" % (len(fnames), pattern))
     ret = {}
 
     for fname in fnames:
