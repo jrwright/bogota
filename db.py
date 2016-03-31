@@ -5,11 +5,10 @@ from __future__ import absolute_import
 import sys
 import bogota.cfg as cfg
 import logging
+error = logging.getLogger(__name__).error
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 from warnings import warn
-
-#TODO bulk insert jobids before bulk que
 
 # =================================== Saving ==================================
 
@@ -26,11 +25,19 @@ def save_mle_params(train_ll, test_ll, walltime,
                        ' values (%s,%s,%s,%s)')
         num_params = len(parameter_names) + 3
 
-        c.executemany(ins_sql,
-                      zip([jobid] * num_params,
-                          [restart_idx] * num_params,
-                          ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
-                          map(float, [train_ll, test_ll, walltime] + parameter_values)))
+        try:
+            c.executemany(ins_sql,
+                          zip([jobid] * num_params,
+                              [restart_idx] * num_params,
+                              ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
+                              map(float, [train_ll, test_ll, walltime] + parameter_values)))
+        except Exception as err:
+            error("Failed SQL query '%s' with args %s" % (ins_sql,
+                          zip([jobid] * num_params,
+                              [restart_idx] * num_params,
+                              ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
+                              map(float, [train_ll, test_ll, walltime] + parameter_values))))
+            raise err
         db.commit()
 
 
