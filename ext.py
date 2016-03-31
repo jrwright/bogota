@@ -55,7 +55,7 @@ def pure_nash(game, eps):
                                        [game.mixed_strategy_profile(), eqa[0]])
 
 @solver(fittable_parameters= ['eps'],
-        parameter_bounds={'eps':(0.0, 1.0)})
+        parameter_bounds={'eps':(1e-5, 1.0)})
 def nee(game, eps):
     """
     Return a set of Nash equilibria, each mixed with uniform noise.
@@ -74,7 +74,7 @@ def nee(game, eps):
     return [proportionally_mix_profiles([eps, 1.0-eps], [game.mixed_strategy_profile(), eqm]) for eqm in eqa]
 
 @solver(fittable_parameters= ['eps'],
-        parameter_bounds={'eps':(0.0, 1.0)})
+        parameter_bounds={'eps':(1e-5, 1.0)})
 def bnee(game, eps, prediction_cache=None):
     """
     For each `eps`-noised equilibrium of `game`, find the one that performs best
@@ -95,7 +95,7 @@ def bnee(game, eps, prediction_cache=None):
     return best_eqm
 
 @solver(fittable_parameters= ['eps'],
-        parameter_bounds={'eps':(0.0, 1.0)})
+        parameter_bounds={'eps':(1e-5, 1.0)})
 def wnee(game, eps, prediction_cache=None):
     """
     For each `eps`-noised equilibrium of `game`, find the one that performs worst
