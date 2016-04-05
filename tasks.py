@@ -40,11 +40,11 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
                              iter, burn, thin, chain)
 
     if os.path.isfile(fname):
-        db = pm.database.hdf5.load(fname, 'a')
+        db = pm.database.pickle.load(fname, 'a')
         completed = len(db.trace(rvs.keys()[0], chain=None)[:]) if db.chains > 0 else 0
         debug("Loaded '%s' [%d samples in %d chains]", fname, completed, db.chains)
     else:
-        db = 'hdf5'
+        db = 'pickle'
         completed = 0
 
     if completed >= (iter - burn) / thin:

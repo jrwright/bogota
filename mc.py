@@ -139,13 +139,13 @@ def posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
     """
     m = hashlib.md5(prior_rvs_expr)
     if chain is None:
-        fname = "%s__%s__%s__%d_%d_%d.hdf5" % (predictor_name, pool_name,
-                                               m.hexdigest()[0:4],
-                                               iter, burn, thin)
+        fname = "%s__%s__%s__%d_%d_%d.pickle" % (predictor_name, pool_name,
+                                                 m.hexdigest()[0:4],
+                                                 iter, burn, thin)
     else:
-        fname = "%s__%s__%s__%d_%d_%d__%s.hdf5" % (predictor_name, pool_name,
-                                                   m.hexdigest()[0:4],
-                                                   iter, burn, thin, chain)
+        fname = "%s__%s__%s__%d_%d_%d__%s.pickle" % (predictor_name, pool_name,
+                                                     m.hexdigest()[0:4],
+                                                     iter, burn, thin, chain)
     if prefix is not None:
         fname = "%s/%s" % (prefix, fname)
     return fname
@@ -169,7 +169,7 @@ def posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
         ix = fname[:-5].rfind('_')
         chain = int(fname[ix+1:-5])
 
-        db = pm.database.hdf5.load(fname, 'r')
+        db = pm.database.pickle.load(fname, 'r')
         if db.chains > 0:
             ret[chain] = db
 
