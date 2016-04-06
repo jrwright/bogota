@@ -134,6 +134,9 @@ class Solver(object):
     def __call__(self, game):
         return self.predict(game)
 
+    def parameter_sigma(self, name):
+        return 0.25
+
     def fit(self, objective, **kwargs):
         # TODO - default kwargs for different kinds of function
         try:
@@ -144,7 +147,7 @@ class Solver(object):
         kw = {}
         kwargs = dict(kwargs)
         kwargs.update(self.fit_args)
-        
+
         def scalar_target(x):
             self.parameters[0] = x
             return self.penalized_objective(objective)
