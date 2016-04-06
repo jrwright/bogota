@@ -165,11 +165,12 @@ def posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
     debug("%d files match '%s'" % (len(fnames), pattern))
     ret = {}
 
+    EXTLEN = len('.pickle')
     for fname in fnames:
-        ix = fname[:-5].rfind('_')
-        chain = int(fname[ix+1:-5])
+        ix = fname[:-EXTLEN].rfind('_')
+        chain = int(fname[ix+1:-EXTLEN])
 
-        db = pm.database.pickle.load(fname, 'r')
+        db = pm.database.pickle.load(fname)
         if db.chains > 0:
             ret[chain] = db
 
