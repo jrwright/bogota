@@ -135,7 +135,7 @@ class Solver(object):
         return self.predict(game)
 
     def parameter_sigma(self, name):
-        return 0.25
+        return 0.25 * self.parameter_scales(name)
 
     def fit(self, objective, **kwargs):
         # TODO - default kwargs for different kinds of function
@@ -197,7 +197,6 @@ class Solver(object):
                                  np.array(self.parameters),
                                  self.DEFAULT_SIGMA0,
                                  **kw)
-                print "res=%s" % (res,) #TEST
                 result = res[0]
 
             # Extract and check results
