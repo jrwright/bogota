@@ -82,7 +82,7 @@ class Solver(object):
                  parameter_scales=None,
                  **kwArgs):
 
-        _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, True)
+        #DEL_parameter_check(fn, fittable_parameters, parameter_bounds, simplex_parameters, parameter_scales, kwArgs, True)
 
         # Copy solver args
         self.fn = fn
@@ -111,7 +111,7 @@ class Solver(object):
             first_default -= len(self.fn.func_defaults)
         for (i, name) in enumerate(self.fittable_parameters):
             # Plus one to skip the first arg, which is not a parameter
-            if (i+1) < first_default:
+            if (i+1) < first_default or self.fn.func_defaults is None:
                 setattr(self, name, 0.0)
             else:
                 setattr(self, name, self.fn.func_defaults[i+1 - first_default])
@@ -135,7 +135,7 @@ class Solver(object):
         return self.predict(game)
 
     def parameter_sigma(self, name):
-        return 0.25 * self.parameter_scales(name)
+        return 0.25 * self.parameter_scales[name]
 
     def fit(self, objective, **kwargs):
         # TODO - default kwargs for different kinds of function
