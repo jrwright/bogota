@@ -3,6 +3,7 @@ Support for Bayesian estimation using pymc (version 2).
 """
 import glob
 import hashlib
+import itertools
 import logging
 debug = logging.getLogger(__name__).debug
 
@@ -200,7 +201,7 @@ def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
     return ret
 
 def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
-                      iter, burn, thin, param_name, prefix=None):
+                      iter, burn, thin, param_name, key, prefix=None):
     """
     Return an array of all samples for the specified parameter of the specified
     posterior.
@@ -208,8 +209,11 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
     h = posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
                       iter, burn, thin, prefix)
     ret = []
+    sz = 0
     for db in h.values():
-        ret += list(x for x in db.trace(param_name, chain=None) if np.isfinite(x).all())
+        tr = db.trace(param_name, chain=None)
+        sz += tr.length()
+        ret = itertools.chain(ret, (key(x) for x in tr if np.isfinite(key(x))))
         db.close()
 
-    return np.array(ret)
+    return np.fromiter(ret, np.float, sz)

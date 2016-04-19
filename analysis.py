@@ -164,7 +164,7 @@ def posterior_cdf_fig(fname,
     parameter of the specified posterior.  
     """
     xs = posterior_samples(predictor_name, pool_name, prior_rvs_expr,
-                           iter, burn, thin, param_name, prefix)
+                           iter, burn, thin, param_name, key, prefix)
     if len(xs) == 0:
         warning("Skipping '%s', no samples found" % fname)
         return
@@ -173,11 +173,14 @@ def posterior_cdf_fig(fname,
 
     with console_or_file(fname, 'wt') as f:
         f.write("# Val\tpct\n")
-        for x, pct in cdf(map(key, xs)):
+        for x, pct in cdf(xs):
             f.write("%f\t%f\n" % (x, pct))
 
 def cdf(xs):
-    xs = sorted(xs)
+    """
+    WARNING: Sorts destructively!
+    """
+    xs.sort()
     n = 1.0 / float(len(xs))
 
     mass = 0.0
