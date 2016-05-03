@@ -1,6 +1,10 @@
 import decimal
-from gambit import new_table
-from bogota.pool_utils import cents_normalize
+import gambit
+new_table = gambit.Game.new_table
+# from bogota.pool_utils import cents_normalize
+
+def cents_normalize(x,y):
+    return x
 
 # inflation times 4c/pt time 5/16 games chosen at random
 CGC06_CENTS_PER_POINT = 1.17 * 4 * 5 / 16
