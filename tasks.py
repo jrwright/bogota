@@ -33,11 +33,20 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
     pool = eval(pool_name, sys.modules)
     predictor = eval(predictor_name, sys.modules)
     prior_rvs = eval(prior_rvs_expr, sys.modules)
+
+    # HACK for specifying proposal distribution scales
+    if isinstance(prior_rvs, tuple):
+        scales = prior_rvs[0]
+        prior_rvs = prior_rvs[1]
+    else:
+        scales = None
+
     rvs = multinomial_rvs(pool, predictor, prior_rvs)
 
     # Connect to backend and create sampler
     fname = posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
                              iter, burn, thin, chain)
+    debug("Database name is '%s'", fname)
 
     if os.path.isfile(fname):
         db = pm.database.pickle.load(fname, 'a')
@@ -57,6 +66,14 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
 
     # Construct/restore chain
     mc = pm.MCMC(rvs, db=db, dbname=fname, dbmode='a') #TODO compression
+
+    # Set step methods (HACK)
+    if scales:
+        adaptive_rvs = [ rv for rv in prior_rvs if str(rv) in scales.keys() ]
+        adaptive_scales = dict((rv, scales[str(rv)]) for rv in adaptive_rvs)
+        info("Using adaptive metropolis for %s", adaptive_rvs)
+        info("with scales %s", scales)
+        mc.use_step_method(pm.AdaptiveMetropolis, adaptive_rvs, scales=adaptive_scales)
 
     # Find starting point
     info("Optimizing MAP")
