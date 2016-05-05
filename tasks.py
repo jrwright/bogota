@@ -49,14 +49,14 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
     debug("Database name is '%s'", fname)
 
     if os.path.isfile(fname):
-        db = pm.database.pickle.load(fname, 'a')
+        db = pm.database.pickle.load(fname)
         completed = len(db.trace(rvs.keys()[0], chain=None)[:]) if db.chains > 0 else 0
         debug("Loaded '%s' [%d samples in %d chains]", fname, completed, db.chains)
     else:
         db = 'pickle'
         completed = 0
 
-    if completed >= (iter - burn) / thin:
+    if completed >= iter / thin:
         info("Skipping completed chain %d for posterior %s/%s/%s/%d/%d/%d",
              chain, predictor_name, pool_name, prior_rvs_expr, iter, burn, thin)
         return
@@ -67,13 +67,11 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
     # Construct/restore chain
     mc = pm.MCMC(rvs, db=db, dbname=fname, dbmode='a') #TODO compression
 
-    # Set step methods (HACK)
+    # Set step methods (!!! there must be a better way to do this...)
     if scales:
-        adaptive_rvs = [ rv for rv in prior_rvs if str(rv) in scales.keys() ]
-        adaptive_scales = dict((rv, scales[str(rv)]) for rv in adaptive_rvs)
+        adaptive_rvs = [ rv for rv in prior_rvs if str(rv) in scales ]
         info("Using adaptive metropolis for %s", adaptive_rvs)
-        info("with scales %s", scales)
-        mc.use_step_method(pm.AdaptiveMetropolis, adaptive_rvs, scales=adaptive_scales)
+        mc.use_step_method(pm.AdaptiveMetropolis, adaptive_rvs)
 
     # Find starting point
     info("Optimizing MAP")

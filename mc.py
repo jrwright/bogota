@@ -41,6 +41,7 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}):
     args = dict(fixed_parameters.items() + rvs.items())
 
     debug("Constructing RVs for predictor '%s'", predictor)
+    debug("fittable_parameters=%s", fittable_parameters)
 
     dnps = []
     for wp in pool.weighted_profiles:
