@@ -55,6 +55,28 @@ cn_all9 = DataPool(cn_stahl1994experimental.weighted_profiles +
                    cn_stahl2008leveln.weighted_profiles +
                    cn_camerer2007heterogeneous.weighted_profiles)
 
+cn_all10 = DataPool(cn_stahl1994experimental.weighted_profiles +
+                    cn_stahl1995players.weighted_profiles +
+                    cn_costagomes1998cognition.weighted_profiles +
+                    cn_goeree2001ten.weighted_profiles +
+                    cn_haruvy2001modeling.weighted_profiles +
+                    cn_cooper2003evidence.weighted_profiles +
+                    cn_haruvy2007equilibrium.weighted_profiles +
+                    cn_stahl2008leveln.weighted_profiles +
+                    cn_camerer2007heterogeneous.weighted_profiles +
+                    cn_costagomes2008stated.weighted_profiles)
+
+cn_all9_plusbinned = DataPool(cn_stahl1994experimental.weighted_profiles +
+                    cn_stahl1995players.weighted_profiles +
+                    cn_costagomes1998cognition.weighted_profiles +
+                    cn_goeree2001ten.weighted_profiles +
+                    cn_haruvy2001modeling.weighted_profiles +
+                    cn_cooper2003evidence.weighted_profiles +
+                    cn_haruvy2007equilibrium.weighted_profiles +
+                    cn_stahl2008leveln.weighted_profiles +
+                    cn_camerer2007heterogeneous.weighted_profiles +
+                    cn_costagomes2006cognition_bin25.weighted_profiles)
+
 cn_all11 = DataPool(cn_stahl1994experimental.weighted_profiles +
                     cn_stahl1995players.weighted_profiles +
                     cn_costagomes1998cognition.weighted_profiles +
