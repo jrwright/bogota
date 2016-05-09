@@ -17,7 +17,7 @@ def csv_fig(fname, rows,
 
     with console_or_file(fname, 'wt') as s:
         f = csv.writer(s, delimiter='\t')
-        defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False,}
+        defaults = {'parameter_name':'LL', 'by_game':True, 'stratified':False, 'uncooked':False}
 
         if col_headings:
             cooked_headings = reduce(lambda x,y: x+y, ([ch, '        err'] for ch in col_headings))
@@ -33,12 +33,25 @@ def csv_fig(fname, rows,
                 args = dict(defaults)
                 args.update(commonKwArgs)
                 args.update(cell)
+                uncooked = args['uncooked']
+                del args['uncooked']
                 pool_obj = eval(args['pool_name'], sys.modules)
-                unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / (args['num_folds'] or 1)
                 try:
                     (avg, err) = mle_parameter_interval(**args)
-                    csvrow.append('%.8f' % ((avg/log(10.0))-unif_ll))
-                    csvrow.append('%.4f' % (err/log(10.0)))
+
+                    if not uncooked:
+                        if args['parameter_name'] == 'LL':
+                            unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / (args['num_folds'] or 1)
+                            avg = (avg / log(10.0)) - unif_ll
+                            err = err / log(10.0)
+                        elif args['parameter_name'] == 'TRAIN_LL':
+                            num_train = args['num_folds'] - 1 if args['num_folds'] > 1 else 1
+                            unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / num_train
+                            avg = (avg / num_train / log(10.0)) - unif_ll
+                            err = err / num_train / log(10.0)
+
+                    csvrow.append('%.8f' % avg)
+                    csvrow.append('%.4f' % err)
                 except MissingData:
                     missing += 1
                     csvrow.append("None")
