@@ -2,9 +2,10 @@
 Linear level-0 meta-model.
 """
 from numpy import inf
-from bogota.utils import action_profiles, normalize, proportionally_mix_profiles
+from bogota.cognitive_hierarchy import multi_logit
+from bogota.utils import action_profiles, normalize, proportionally_mix_profiles, zero_profile
 
-# ================================= Meta-model ================================
+# ================================ Meta-models ================================
 
 def weighted_linear_l0_prediction(features, weights, game, applicable_only):
     """
@@ -37,6 +38,34 @@ def applicable(fp):
                 return True
     return False
 
+def logit_l0_prediction(features, weights, link_lam, game, normalize_activations=False):
+    """
+    Take the weighted sum of activations from ``features``, and return a
+    prediction using a logit link.
+    """
+    # By default weight everything equally
+    if weights is None:
+        weights = [1.0 / len(features)] * len(features)
+
+    activations = zero_profile(game)
+    for (w,f) in zip(weights, features):
+        fp = f(game)
+        if normalize_activations:
+            fp = normalize(fp)
+        if '_inv' in dir(f) and f._inv:
+            for i in xrange(len(fp)):
+                fp[i] = -fp[i]
+        for i in xrange(len(activations)):
+            activations[i] += w*fp[i]
+
+    new_p = game.mixed_profile()
+    for pl in game.players:
+        q = multi_logit(link_lam, activations[pl])
+        pi = new_p[pl]
+        for i in xrange(len(pi)):
+            pi[i] = q[i]
+
+    return new_p
 
 # ================================== Features =================================
 
@@ -95,6 +124,7 @@ def min_payoff(game):
                 m[pl][i] = min(vs[i], m[pl][i])
     return m
 
+
 @memodict
 def relative_max_regret(game, digits=6):
     """
@@ -115,7 +145,7 @@ def relative_max_regret(game, digits=6):
 
     for pl in game.players:
         for ix in xrange(len(r[pl])):
-            r[pl][ix] = round(r[pl][ix] / mx[pl], 6)
+            r[pl][ix] = round(r[pl][ix] / mx[pl], digits)
 
     return r
 
