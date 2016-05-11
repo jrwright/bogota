@@ -60,7 +60,7 @@ def logit_l0_prediction(features, weights, link_lam, game, normalize_activations
         for i in xrange(len(activations)):
             activations[i] += w*fp[i]
 
-    new_p = game.mixed_profile()
+    new_p = game.mixed_strategy_profile()
     for pl in game.players:
         q = multi_logit(link_lam, activations[pl])
         pi = new_p[pl]
