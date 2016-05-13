@@ -302,12 +302,12 @@ def main(mod):
     gr = parser.add_mutually_exclusive_group()
     gr.add_argument('--by-game', type=yesno, nargs='?', const=True,
                         help="Divide at the level of games rather than observations",
-                        default=True if 'BY_GAME' not in mod else mod['BY_GAME'])
+                        default=None if 'BY_GAME' not in mod else mod['BY_GAME'])
     gr.add_argument('--no-by-game', action='store_false', dest='by_game')
     gr = parser.add_mutually_exclusive_group()
     gr.add_argument('--stratified',  type=yesno, nargs='?', const=True,
                         help="Stratify by original dataset",
-                        default=True if 'STRATIFIED' not in mod else mod['STRATIFIED'])
+                        default=None if 'STRATIFIED' not in mod else mod['STRATIFIED'])
     gr.add_argument('--no-stratified', action='store_false', dest='stratified')
     gr = parser.add_mutually_exclusive_group()
     gr.add_argument('--queue-missing', type=yesnofast, nargs='?', const=True, dest='queue_missing',
