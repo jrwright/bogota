@@ -330,15 +330,15 @@ def main(mod):
         import logging
         if 'debug' in kwargs and kwargs['debug']:
             logging.getLogger().setLevel(logging.DEBUG)
-            del kwargs['debug']
         else:
             logging.getLogger().setLevel(logging.INFO)
         logging.info("Starting up")
         logging.debug("Debugging enabled")
 
-    elif 'debug' in kwargs:
-        if kwargs['debug']:
-            mod['logging'].getLogger().setLevel(mod['logging'].DEBUG)
+    elif 'debug' in kwargs and kwargs['debug']:
+        mod['logging'].getLogger().setLevel(mod['logging'].DEBUG)
+
+    if 'debug' in kwargs:
         del kwargs['debug']
 
     fig_fns = [ mod[n] for n in mod if n[:4] == 'fig_' ]
