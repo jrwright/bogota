@@ -322,13 +322,24 @@ def main(mod):
                         help="Report intermediate values based on incomplete fits",
                         default=False if 'REPORT_INTERMEDIATE' not in mod else mod['REPORT_INTERMEDIATE'])
     gr.add_argument('--no-report-intermediate', action='store_false', dest='report_intermediate')
+    parser.add_argument('--debug', action='store_true',
+                        help="Set logging level to debug")
     kwargs = dict(cell for cell in parser.parse_args()._get_kwargs() if cell[1] is not None)
 
     if 'logging' not in mod:
         import logging
-        logging.getLogger().setLevel(logging.INFO)
+        if 'debug' in kwargs and kwargs['debug']:
+            logging.getLogger().setLevel(logging.DEBUG)
+            del kwargs['debug']
+        else:
+            logging.getLogger().setLevel(logging.INFO)
         logging.info("Starting up")
         logging.debug("Debugging enabled")
+
+    elif 'debug' in kwargs:
+        if kwargs['debug']:
+            mod['logging'].getLogger().setLevel(mod['logging'].DEBUG)
+        del kwargs['debug']
 
     fig_fns = [ mod[n] for n in mod if n[:4] == 'fig_' ]
     missing = 0
