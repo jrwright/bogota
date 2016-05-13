@@ -236,3 +236,105 @@ def elm(ix):
         return lambda vec: max(0.0, 1.0 - sum(vec))
     else:
         return lambda vec: vec[ix - 1]
+
+# =========================== reusable main function ==========================
+
+def main(mod):
+    """
+    Main function for use in figure-generating scripts.
+
+    Args:
+      mod: dictionary of the main-module's symbols.
+
+    Usage:
+      Place the following code at the end of the script:
+        ```
+        if __name__ == '__main__':
+            bogota.analysis.main(globals())
+        ```
+
+      Every function named `fig_*` will be run in unspecified order.  These
+      functions will be passed a dictionary containing keywords parsed from the
+      command-line; this dictionary can be passed directly to analysis
+      functions such as `csv_fig`:
+        ```
+        def fig_foo(args):
+            return csv_fig('foo.dat', [...], **args)
+        ```
+
+      The module documentation string will be used as the script documentation.
+    """
+    def int_range_or_list(string):
+        ints = []
+        strs = string.split(',')
+        for s in strs:
+            dash = s.find('-')
+            if dash >= 0:
+                L = int(s[:dash])
+                R = int(s[dash+1:])
+                ints += range(L, R+1)
+            else:
+                ints.append(int(s))
+        return ints
+    def yesno(string):
+        s = string.lower()
+        if s is False or s=='no' or s=='false' or s=='0':
+            return False
+        elif s is True or s=='yes' or s=='true' or s=='1':
+            return True
+        else:
+            raise ValueError("Unrecognized bool arg '%s'", s)
+    def yesnofast(string):
+        if string.lower() == 'fast':
+            return 'fast'
+        else:
+            return yesno(string)
+
+    import argparse
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=mod['__doc__'])
+    parser.add_argument('--fold-seeds', type=int_range_or_list,
+                        help="Seeds to use when creating partitions",
+                        default=None if 'FOLD_SEEDS' not in mod else mod['FOLD_SEEDS'])
+    parser.add_argument('--num-folds', type=int,
+                        help="Number of folds per partition",
+                        default=None if 'NUM_FOLDS' not in mod else mod['NUM_FOLDS'])
+    gr = parser.add_mutually_exclusive_group()
+    gr.add_argument('--by-game', type=yesno, nargs='?', const=True,
+                        help="Divide at the level of games rather than observations",
+                        default=True if 'BY_GAME' not in mod else mod['BY_GAME'])
+    gr.add_argument('--no-by-game', action='store_false', dest='by_game')
+    gr = parser.add_mutually_exclusive_group()
+    gr.add_argument('--stratified',  type=yesno, nargs='?', const=True,
+                        help="Stratify by original dataset",
+                        default=True if 'STRATIFIED' not in mod else mod['STRATIFIED'])
+    gr.add_argument('--no-stratified', action='store_false', dest='stratified')
+    gr = parser.add_mutually_exclusive_group()
+    gr.add_argument('--queue-missing', type=yesnofast, nargs='?', const=True, dest='queue_missing',
+                    help="Whether to queue missing restarts",
+                    default=False if 'QUEUE_MISSING' not in mod else mod['QUEUE_MISSING'])
+    gr.add_argument('--no-queue-missing', action='store_false', dest='queue_missing')
+    gr.add_argument('--queue-fast', '--fast', action='store_const', const='fast', dest='queue_missing',
+                    help="Whether to queue missing restarts in 'fast' mode (i.e., cells will not be calculated).  Overrides --queue-missing.",
+                    default='fast' if 'QUEUE_MISSING' in mod and mod['QUEUE_MISSING'] == 'fast' else None)
+    gr = parser.add_mutually_exclusive_group()
+    gr.add_argument('--report-intermediate', type=yesno, nargs='?', const=True,
+                        help="Report intermediate values based on incomplete fits",
+                        default=False if 'REPORT_INTERMEDIATE' not in mod else mod['REPORT_INTERMEDIATE'])
+    gr.add_argument('--no-report-intermediate', action='store_false', dest='report_intermediate')
+    kwargs = dict(cell for cell in parser.parse_args()._get_kwargs() if cell[1] is not None)
+
+    if 'logging' not in mod:
+        import logging
+        logging.getLogger().setLevel(logging.INFO)
+        logging.info("Starting up")
+        logging.debug("Debugging enabled")
+
+    fig_fns = [ mod[n] for n in mod if n[:4] == 'fig_' ]
+    missing = 0
+    for fn in fig_fns:
+        info("RUNNING FIGURE %s", fn.__name__)
+        missing += fn(kwargs)
+
+    if kwargs['queue_missing'] <> 'fast':
+        info("%d cells missing in total" % missing)
