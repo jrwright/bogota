@@ -190,7 +190,9 @@ def _fit_fold_task(restart_idx, solver_name, pool_name, fold_seed, num_folds, fo
             (train_fold, test_fold) = pool.train_fold(fold_seed, num_folds, fold_idx, True)
 
     solver_inst = _solver(solver_name)
-    solver_inst.random_start()
+    if restart_idx > 0:
+        solver_inst.random_start()
+    info("Starting optimization from %s" % list(solver_inst.parameters))
     walltime_s = tick()
     ps = solver_inst.fit(train_fold.log_likelihood,
                          **solver_inst.fit_args)
