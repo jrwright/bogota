@@ -345,7 +345,11 @@ def main(mod):
     missing = 0
     for fn in fig_fns:
         info("RUNNING FIGURE %s", fn.__name__)
-        missing += fn(kwargs)
+        ret = fn(kwargs)
+        if isinstance(ret, int):
+            missing += ret
+        else:
+            debug("not tallying non-integer figure return '%s'", ret)
 
     if kwargs['queue_missing'] <> 'fast':
         info("%d cells missing in total" % missing)
