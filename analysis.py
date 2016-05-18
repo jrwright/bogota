@@ -46,7 +46,7 @@ def csv_fig(fname, rows,
                             err = err / log(10.0)
                         elif args['parameter_name'] == 'TRAIN_LL':
                             num_train = args['num_folds'] - 1 if args['num_folds'] > 1 else 1
-                            unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / num_train
+                            unif_ll = pool_obj.uniform_log_likelihood() / log(10.0) / (args['num_folds'] or 1) 
                             avg = (avg / num_train / log(10.0)) - unif_ll
                             err = err / num_train / log(10.0)
 
