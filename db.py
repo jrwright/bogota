@@ -164,6 +164,9 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
     """
     Load the jobid out of the database, creating a new job record if necessary.
     """
+    # This error has confused me often enough that we will check for it explicitly
+    if len(solver_name) > SOLVER_NAME_LEN:
+        raise ValueError("solver_name length (%d) exceeds %d chars: '%s'" % (len(solver_name), SOLVER_NAME_LEN, solver_name))
     isql = "N/A"
     db = db or db_connect()
     for ix in xrange(2):
@@ -193,9 +196,9 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
 
         elif ix > 0:
             db.commit()
-            raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s\nwith len(solver_name)=%d\nwith SQL '%s'" % \
+            raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s\nwith SQL '%s'" % \
                              (solver_name, pool_name,
-                              fold_seed, num_folds, fold_idx, by_game, stratified, len(solver_name),
+                              fold_seed, num_folds, fold_idx, by_game, stratified,
                               isql % (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)))
 
         isql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
@@ -204,6 +207,9 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
         db.commit()
 
 def _create_jobids(solver_name, pool_name, fold_seeds, num_folds, by_game, stratified):
+    # This error has confused me often enough that we will check for it explicitly
+    if len(solver_name) > SOLVER_NAME_LEN:
+        raise ValueError("solver_name length (%d) exceeds %d chars: '%s'" % (len(solver_name), SOLVER_NAME_LEN, solver_name))
     with db_connect() as db:
         c = db.cursor()
         sql = """
@@ -275,6 +281,7 @@ def db_connect(dbtype=None, dbname=None, host=None, port=None, user=None, passwd
 
     return db
 
+SOLVER_NAME_LEN = 256
 def create_schema(db):
     """
     Create all expected tables in ``db``.
@@ -283,7 +290,7 @@ def create_schema(db):
     sql = """
     create table mle_jobs (
     jobid integer primary key %s,
-    solver_name varchar(256) not null,
+    solver_name varchar(%d) not null,
     pool_name varchar(128) not null,
     fold_seed integer not null,
     num_folds integer not null,
@@ -291,7 +298,7 @@ def create_schema(db):
     by_game boolean not null default false,
     stratified boolean not null default false
     )
-    """
+    """ % SOLVER_NAME_LEN
     if db.__class__.__module__ == 'mysql.connector.connection':
         sql = (sql % 'auto_increment')
         sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
