@@ -326,6 +326,8 @@ def main(mod):
                         help="Set logging level to debug")
     kwargs = dict(cell for cell in parser.parse_args()._get_kwargs() if cell[1] is not None)
 
+    debug("kwargs: %s", kwargs)
+
     if 'logging' not in mod:
         import logging
         if 'debug' in kwargs and kwargs['debug']:

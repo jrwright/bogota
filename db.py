@@ -164,13 +164,14 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
     """
     Load the jobid out of the database, creating a new job record if necessary.
     """
+    isql = "N/A"
     db = db or db_connect()
     for ix in xrange(2):
         c = db.cursor()
         c.execute("START TRANSACTION")
-        sql = _sql(db, 'select jobid from mle_jobs'
+        ssql = _sql(db, 'select jobid from mle_jobs'
                        ' where solver_name=%s and pool_name=%s and fold_seed=%s and num_folds=%s and fold_idx=%s and by_game=%s and stratified=%s order by jobid asc')
-        c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
+        c.execute(ssql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
         jobids = c.fetchall()
         if len(jobids) > 1:
             db.commit()
@@ -192,13 +193,14 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
 
         elif ix > 0:
             db.commit()
-            raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s" % \
+            raise IOError("Could not create jobid for %s/%s/%s/%s/%s/%s/%s\nwith len(solver_name)=%d\nwith SQL '%s'" % \
                              (solver_name, pool_name,
-                              fold_seed, num_folds, fold_idx, by_game, stratified))
+                              fold_seed, num_folds, fold_idx, by_game, stratified, len(solver_name),
+                              isql % (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)))
 
-        sql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
+        isql = _sql(db, 'insert into mle_jobs (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified) '
                    'values (%s,%s,%s,%s,%s, %s,%s)')
-        c.execute(sql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
+        c.execute(isql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
         db.commit()
 
 def _create_jobids(solver_name, pool_name, fold_seeds, num_folds, by_game, stratified):
