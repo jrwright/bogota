@@ -281,7 +281,7 @@ def db_connect(dbtype=None, dbname=None, host=None, port=None, user=None, passwd
 
     return db
 
-SOLVER_NAME_LEN = 256
+SOLVER_NAME_LEN = 512
 def create_schema(db):
     """
     Create all expected tables in ``db``.
