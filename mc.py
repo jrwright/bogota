@@ -212,8 +212,13 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
     ret = []
     sz = 0
     for db in h.values():
-        tr = db.trace(param_name, chain=None)
-        sz += tr.length()
+        if isinstance(param_name, list) or isinstance(param_name, tuple):
+            trs = [ db.trace(name, chain=None) for name in param_name ]
+            sz += reduce(min, [tr.length() for tr in trs])
+            tr = itertools.izip(*trs)
+        else:
+            tr = db.trace(param_name, chain=None)
+            sz += tr.length()
         ret = itertools.chain(ret, (key(x) for x in tr if np.isfinite(key(x))))
         db.close()
 
