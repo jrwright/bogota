@@ -213,13 +213,17 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
     sz = 0
     for db in h.values():
         if isinstance(param_name, list) or isinstance(param_name, tuple):
+            debug("grabbing %d traces", len(param_name))
             trs = [ db.trace(name, chain=None) for name in param_name ]
             sz += reduce(min, [tr.length() for tr in trs])
+            debug("grabbed traces of length %s", [tr.length() for tr in trs])
             tr = itertools.izip(*trs)
+            debug("izip constructed")
         else:
             tr = db.trace(param_name, chain=None)
             sz += tr.length()
         ret = itertools.chain(ret, (key(x) for x in tr if np.isfinite(key(x))))
         db.close()
 
+    debug("Building %d-element numpy array", sz)
     return np.fromiter(ret, np.float, sz)
