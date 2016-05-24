@@ -324,6 +324,8 @@ def main(mod):
     gr.add_argument('--no-report-intermediate', action='store_false', dest='report_intermediate')
     parser.add_argument('--debug', action='store_true',
                         help="Set logging level to debug")
+    parser.add_argument('--figures', '--only-figures', '--only', type=str,
+                        help="Only run the specified figures")
     kwargs = dict(cell for cell in parser.parse_args()._get_kwargs() if cell[1] is not None)
 
     debug("kwargs: %s", kwargs)
@@ -343,7 +345,14 @@ def main(mod):
     if 'debug' in kwargs:
         del kwargs['debug']
 
-    fig_fns = [ mod[n] for n in mod if n[:4] == 'fig_' ]
+    if 'figures' in kwargs:
+        fig_names = kwargs['figures'].split(',')
+        fig_names = [ n if n[:4] == 'fig_' else 'fig_'+n for n in fig_names ]
+        fig_fns = [ mod[n] for n in fig_names ]
+        del kwargs['figures']
+    else:
+        fig_fns = [ mod[n] for n in mod if n[:4] == 'fig_' ]
+
     missing = 0
     for fn in fig_fns:
         info("RUNNING FIGURE %s", fn.__name__)
