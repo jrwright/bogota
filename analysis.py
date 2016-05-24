@@ -182,7 +182,7 @@ def posterior_cdf_fig(fname,
         warning("Skipping '%s', no samples found" % fname)
         return
     else:
-        debug("Writing %d-sample CDF to '%s'", len(xs), fname)
+        info("Writing %d-sample CDF to '%s'", len(xs), fname)
 
     with console_or_file(fname, 'wt') as f:
         f.write("# Val\tpct\n")
