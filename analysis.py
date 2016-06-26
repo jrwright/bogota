@@ -6,6 +6,7 @@ debug = logging.getLogger(__name__).debug
 warning = logging.getLogger(__name__).warning
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
+from .cognitive_hierarchy import spike_poisson_alphas
 from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver, _create_jobids
 from .mc import posterior_samples
 from .tasks import fit_fold
@@ -189,6 +190,31 @@ def posterior_cdf_fig(fname,
         for x, pct in cdf(xs):
             f.write("%f\t%f\n" % (x, pct))
 
+def posterior_cdf_cci(fname, pval=0.05):
+    """
+    Return a `1-pval` central credible interval for the CDF stored in `fname`.
+    """
+    lpct = pval / 2
+    rpct = 1.0 - pval / 2
+
+    L,R = None,None
+
+    with open(fname, 'r') as f:
+        for line in f:
+            debug(line)
+            if line[0]=='#':
+                continue
+            val, pct = line.split()
+            val = float(val)
+            pct = float(pct)
+            if pct <= lpct:
+                L = val
+            if R is None and pct >= rpct:
+                R = val
+                break
+
+    return L,R
+
 def cdf(xs):
     """
     WARNING: Sorts destructively!
@@ -236,6 +262,17 @@ def elm(ix):
         return lambda vec: max(0.0, 1.0 - sum(vec))
     else:
         return lambda vec: vec[ix - 1]
+
+def spike_poisson_elm(level):
+    """
+    Helper key for extracting level proportions from spike-Poisson parameters.
+    """
+    def poisson_elm_inner(epstau):
+        eps, tau = epstau
+        alphas = spike_poisson_alphas(eps, tau)
+        return alphas[level]
+    return poisson_elm_inner
+
 
 # =========================== reusable main function ==========================
 
