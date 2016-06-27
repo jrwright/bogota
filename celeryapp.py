@@ -6,14 +6,14 @@ if cfg.app.async:
 
     app = Celery(cfg.app.name,
                  broker=cfg.app.broker,
-                 #backend=cfg.app.backend,
+                 backend=cfg.app.backend,
                  include=cfg.app.include.split(','))
 
     # Optional configuration, see the application user guide.
     app.conf.update(
         CELERY_TASK_RESULT_EXPIRES=3600,
         CELERY_TASK_SERIALIZER='json',
-        # CELERY_RESULT_SERIALIZER='json',
+        CELERY_RESULT_SERIALIZER='json',
         CELERY_ACCEPT_CONTENT = ['json'],
         CELERYD_PREFETCH_MULTIPLIER = 1,
     )
