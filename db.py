@@ -289,7 +289,7 @@ def create_schema(db):
     c = db.cursor()
     sql = """
     create table mle_jobs (
-    jobid integer primary key auto_increment,
+    jobid integer primary key %%s,
     solver_name varchar(%d) not null,
     pool_name varchar(128) not null,
     fold_seed integer not null,
@@ -300,7 +300,10 @@ def create_schema(db):
     )
     """ % SOLVER_NAME_LEN
     if db.__class__.__module__ == 'mysql.connector.connection':
+        sql = (sql % 'auto_increment')
         sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
+    else:
+        sql = (sql % 'autoincrement')
     c.execute(sql)
 
     sql = """
