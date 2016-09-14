@@ -12,22 +12,22 @@ import pymc as pm
 
 def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}):
     """
-    Construct a pymc model of the data in 'pool' based on the function
-    'predictor'.  The observation counts in each weighted profile are assumed
+    Construct a pymc model of the data in `pool` based on the function
+    `predictor`.  The observation counts in each weighted profile are assumed
     to be iid draws from a multinomial whose parameters are the prediction by
-    'predictor' for the corresponding game.
+    `predictor` for the corresponding game.
 
-    'predictor' should be a function whose first positional argument is a game,
+    `predictor` should be a function whose first positional argument is a game,
     which returns a distribution over the actions of the game.  The other
-    arguments will be set based on 'fittable_parameters' and 'fixed_parameters.'
+    arguments will be set based on `fittable_parameters` and `fixed_parameters.`
 
-    'fittable_parameters' should be a list of pymc random variables, with
-    names that correspond to the appropriate arguments of 'predictor'.
+    `fittable_parameters` should be a list of pymc random variables, with
+    names that correspond to the appropriate arguments of `predictor`.
     **WARNING**: These variables will be destructively updated!
     (This may optionally be a dictionary, in which case the variables' names
     will be ignored and their dictionary keys will be used instead.)
 
-    'fixed_parameters' should be a dict mapping from argument name to a value;
+    `fixed_parameters` should be a dict mapping from argument name to a value;
     these values will not be fit.  (This is a convenience parameter to make
     currying unnecessary).
 
