@@ -232,14 +232,14 @@ def game_array(game):
     Converts `game` into a numpy array.
     
     Returns:
-      An n x M1 x M2 x ... x Mn array, where player i has Mi actions and there
+      An M1 x M2 x ... x Mn x n array, where player i has Mi actions and there
       are n players.
     """
     N = len(game.players)
-    dim = [N] + [len(pl.strategies) for pl in game.players]
+    dim = [len(pl.strategies) for pl in game.players] + [N]
     A = np.ndarray(dim)
     for c in fast_contingencies(game):
         for plx in xrange(N):
-            A[(plx,)+c] = game[c][plx]
+            A[c+(plx,)] = game[c][plx]
 
     return A
