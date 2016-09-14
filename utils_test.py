@@ -14,9 +14,9 @@ def test_game_array():
     A = game_array(nfg)
     print A
 
-    assert A[0,0][0] == 1
-    assert A[0,0][1] == 2
-    assert A[1,1][0] == 5
-    assert A[1,1][1] == 8
-    assert A[2,2][0] == 6
-    assert A[2,2][1] == 7
+    assert A[0][0,0] == 1
+    assert A[1][0,0] == 2
+    assert A[0][1,1] == 5
+    assert A[1][1,1] == 8
+    assert A[0][2,2] == 6
+    assert A[1][2,2] == 7
