@@ -105,34 +105,7 @@ def find_MAP(rvs, restarts = 10,
         stochastic[j].value = best_values[j]
 
 
-# =================================== Utils ===================================
-
-class UniformSimplex(pm.Dirichlet):
-    """
-    An extension of `pymc.Dirichlet` that represents a uniform distribution
-    over the *closed* 'k'-dimensional simplex; that is, the boundary is also
-    assigned positive probability.
-    """
-    def __init__(self, name, **args):
-        if 'theta' in args:
-            raise TypeError("Keyword 'theta' not recognized; use 'k' instead")
-        if 'k' not in args:
-            raise ValueError("Keyword 'k' must be provided")
-        _args = dict(args)
-        del _args['k']
-        _args['theta'] = np.ones(args['k'])
-        super(UniformSimplex, self).__init__(name, **_args)
-
-    @property
-    def logp(self):
-        try:
-            if min(self.value) < 0.0 or max(self.value) > 1.0 or sum(self.value) > 1.0:
-                raise pm.ZeroProbability()
-            return self._cached_logp
-        except AttributeError:
-            self._cached_logp = super(UniformSimplex, self).logp
-            return self._cached_logp
-
+# ============================ Database management ============================
 
 def posterior_dbname(predictor_name, pool_name, prior_rvs_expr,
                      iter, burn, thin, chain=None, prefix=None):
@@ -227,3 +200,52 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
 
     debug("Building %d-element numpy array", sz)
     return np.fromiter(ret, np.float, sz)
+
+
+# =================================== Utils ===================================
+
+class UniformSimplex(pm.Dirichlet):
+    """
+    An extension of `pymc.Dirichlet` that represents a uniform distribution
+    over the *closed* 'k'-dimensional simplex; that is, the boundary is also
+    assigned positive probability.
+    """
+    def __init__(self, name, **args):
+        if 'theta' in args:
+            raise TypeError("Keyword 'theta' not recognized; use 'k' instead")
+        if 'k' not in args:
+            raise ValueError("Keyword 'k' must be provided")
+        _args = dict(args)
+        del _args['k']
+        _args['theta'] = np.ones(args['k'])
+        super(UniformSimplex, self).__init__(name, **_args)
+
+    @property
+    def logp(self):
+        try:
+            if min(self.value) < 0.0 or max(self.value) > 1.0 or sum(self.value) > 1.0:
+                raise pm.ZeroProbability()
+            return self._cached_logp
+        except AttributeError:
+            self._cached_logp = super(UniformSimplex, self).logp
+            return self._cached_logp
+
+def stochastic_slices(model):
+    """
+    Return a dictionary from stochastic to slice for indexing into a flattened
+    array of parameters.
+    """
+    h = {}
+    s = 0
+
+    try:
+        model.stochastics
+    except:
+        model = pm.Model(model)
+
+    for rv in model.stochastics:
+        N = reduce(lambda x,y: x*y, rv.shape)
+        h[rv] = slice(s, s + N)
+        s += N
+    return h
+
