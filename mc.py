@@ -244,8 +244,33 @@ def stochastic_slices(model):
         model = pm.Model(model)
 
     for rv in model.stochastics:
-        N = reduce(lambda x,y: x*y, rv.shape)
+        if len(rv.shape) == 0:
+            N = 1
+        else:
+            N = reduce(lambda x,y: x*y, rv.shape)
         h[rv] = slice(s, s + N)
         s += N
     return h
 
+def theta_to_model(slices, theta):
+    """
+    Copy the values in vector `theta` to the stochastics in `slices`.
+    """
+    for rv in slices:
+        rv.value = np.reshape(theta[slices[rv]], rv.shape)
+
+def model_to_theta(slices, theta=None):
+    """
+    Copy the values in `slices`'s stochastics to `theta`, allocating `theta`
+    first if necessary.
+    """
+    if theta is None:
+        sz = max(s.stop for s in slices.values())
+        theta = np.ndarray(sz)
+
+    for rv in slices:
+        theta[slices[rv]] = np.ravel(rv.value)
+
+    return theta
+
+    
