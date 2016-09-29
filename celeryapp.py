@@ -24,8 +24,10 @@ if cfg.app.async:
 
 else:
     class DummyApp(object):
-        def task(fn, *args, **kwArgs):
-            return fn
+        def task(self, *args, **kwArgs):
+            def inner(fn):
+                return fn
+            return inner
         def worker_main():
             pass
 
