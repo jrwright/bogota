@@ -195,7 +195,7 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
         else:
             tr = db.trace(param_name, chain=None)
             sz += tr.length()
-        ret = itertools.chain(ret, (key(x) for x in tr if np.isfinite(key(x))))
+        ret = itertools.chain(ret, (key(x) for x in tr if np.isfinite(key(x)).all()))
         db.close()
 
     debug("Building %d-element numpy array", sz)
