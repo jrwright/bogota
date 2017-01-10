@@ -3,7 +3,7 @@ Linear level-0 meta-model.
 """
 from numpy import inf
 from bogota.cognitive_hierarchy import multi_logit
-from bogota.utils import action_profiles, normalize, proportionally_mix_profiles, zero_profile
+from bogota.utils import action_profiles, normalize, proportionally_mix_profiles, zero_profile, fast_contingencies
 
 # ================================ Meta-models ================================
 
@@ -229,7 +229,8 @@ def symmetric_payoffs(game):
 
 def is_symmetric_game(game):
     """
-    Return true if ``game`` is symmetric.
+    Return true if ``game`` is symmetric in the restricted sense that every
+    player has the same number of actions.
     """
     p0 = game.players[0]
 
@@ -241,6 +242,28 @@ def is_symmetric_game(game):
     # TODO: Should we also require off-diagonal symmetry?
     return True
 
+def is_strictly_symmetric_game(game):
+    """
+    Return true if `game` is symmetric in the strong sense that permutations of
+    action profiles lead to the same permutation of payoffs.
+    """
+    if not is_symmetric_game(game):
+        return False
+
+    p0 = game.players[0]
+    for c in fast_contingencies(game):
+        U = [ game[c][pl] for pl in game.players ]
+
+        revC = tuple(reversed(c))
+        revU = [game[revC][pl] for pl in game.players ]
+        revU.reverse()
+        if revU <> U:
+            return False
+
+    return True
+
+        
+        
 # -------------------------- Payoff binary features -------------------------
 
 def gen_binary_feature(feature_name, raw_feature, reduce_op, docstring):

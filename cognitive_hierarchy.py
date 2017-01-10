@@ -47,9 +47,9 @@ def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
 
 @solver(['tau'],
         parameter_bounds={'tau':(0.0, None)})
-def poisson_ch(game, tau, l0_prediction=None, top_level=7):
+def poisson_ch(game, tau, l0_prediction=None, top_level=7, per_level=False):
     return quantal_ch(game, poisson_alphas(tau, top_level),
-                      1000.0, l0_prediction)
+                      1000.0, l0_prediction, per_level=per_level)
 
 @solver(['a1', 'a2', 'a3', 'a4', 'a5', 'lam'],
         parameter_bounds={'a1':(0.0,1.0), 'a2':(0.0,1.0), 'a3':(0.0,1.0), 'a4':(0.0,1.0), 'a5':(0.0,1.0), 'lam':(0.0,None)},
