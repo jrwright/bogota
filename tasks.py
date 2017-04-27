@@ -320,7 +320,14 @@ def queued_tasks(url=cfg.app.backend):
     tasks = []
     for x in r.lrange('celery', 0, -1):
         j = json.loads(x)
-        decoded = base64.b64decode(j['body'])
-        task = json.loads(decoded)
-        tasks.append({'name':task['task'], 'args':task['args']})
+        try:
+            task_name = j['headers']['task']
+            task_args = j['headers']['argsrepr']
+        except KeyError:
+            decoded = base64.b64decode(j['body'])
+            task = json.loads(decoded)
+            task_name = task['task']
+            task_args = task['args']
+        tasks.append({'name':task_name, 'args':task_args})
+
     return tasks
