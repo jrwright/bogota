@@ -9,7 +9,7 @@ debug = logging.getLogger(__name__).debug
 import numpy as np
 from numpy.random import RandomState
 import scipy.optimize
-import cmaes
+import cma
 
 # ================================= decorator =================================
 
@@ -193,7 +193,7 @@ class Solver(object):
                 # kw = {'scaling_of_variables':np.array(scales)}
                 kw = {'verb_log':0}
                 kw.update(kwargs)
-                res = cmaes.fmin(mv_target,
+                res = cma.fmin(mv_target,
                                  np.array(self.parameters),
                                  self.DEFAULT_SIGMA0,
                                  **kw)
