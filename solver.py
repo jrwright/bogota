@@ -191,7 +191,7 @@ class Solver(object):
                 # for p in self.fittable_parameters:
                 #     scales.append(self.parameter_scales()[p])
                 # kw = {'scaling_of_variables':np.array(scales)}
-                kw = {'verb_log':0}
+                kw = {}
                 kw.update(kwargs)
                 res = cma.fmin(mv_target,
                                  np.array(self.parameters),
