@@ -171,7 +171,10 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
     db = db or db_connect()
     for ix in xrange(2):
         c = db.cursor()
-        c.execute("START TRANSACTION")
+        if db.__class__.__module__ == 'sqlite3':
+            c.execute("BEGIN TRANSACTION")
+        else:
+            c.execute("START TRANSACTION")
         ssql = _sql(db, 'select jobid from mle_jobs'
                        ' where solver_name=%s and pool_name=%s and fold_seed=%s and num_folds=%s and fold_idx=%s and by_game=%s and stratified=%s order by jobid asc')
         c.execute(ssql, [solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified])
@@ -378,3 +381,7 @@ def _solver(spec):
     else:
         # Passthrough
         return spec
+
+if __name__ == '__main__':
+    with db_connect() as db:
+        create_schema(db)
