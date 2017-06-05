@@ -196,6 +196,7 @@ class Solver(object):
                 res = cma.fmin(mv_target,
                                  np.array(self.parameters),
                                  self.DEFAULT_SIGMA0,
+                                 {'verb_log':0, 'verb_plot':0},
                                  **kw)
                 result = res[0]
 
