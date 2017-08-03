@@ -301,8 +301,8 @@ def create_schema(db):
     by_game boolean not null default false,
     stratified boolean not null default false
     )
-    """ % SOLVER_NAME_LEN
-    if db.__class__.__module__ == 'mysql.connector.connection':
+    """ % SOLVER_NAME_LEN    
+    if _ismysql(db):
         sql = (sql % 'auto_increment')
         sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
     else:
@@ -323,7 +323,7 @@ def create_schema(db):
     value double not null,
     primary key (jobid, restart_idx, name))
     """)
-    if db.__class__.__module__ == 'mysql.connector':
+    if _ismysql(db):
         sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
     c.execute(sql)
 
@@ -334,7 +334,7 @@ def create_schema(db):
     rng_state blob(3000) not null,
     primary key (jobid))
     """)
-    if db.__class__.__module__ == 'mysql.connector':
+    if _ismysql(db):
         sql += 'COLLATE utf8_bin\nENGINE=InnoDB'
     c.execute(sql)
 
@@ -381,6 +381,12 @@ def _solver(spec):
     else:
         # Passthrough
         return spec
+
+def _ismysql(db):
+    """
+    Return `True` if `db` is a mysql connection.
+    """
+    return db.__class__.__module__ == 'mysql.connector' or db.__class__ == MysqlExitWrapper
 
 if __name__ == '__main__':
     with db_connect() as db:

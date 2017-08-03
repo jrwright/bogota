@@ -399,5 +399,7 @@ def main(mod):
         else:
             debug("not tallying non-integer figure return '%s'", ret)
 
-    if kwargs['queue_missing'] <> 'fast':
+    if kwargs['queue_missing'] == 'fast':
+        info("Finished queueing")
+    else:
         info("%d cells missing in total" % missing)
