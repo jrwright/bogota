@@ -6,7 +6,7 @@ debug = logging.getLogger(__name__).debug
 warning = logging.getLogger(__name__).warning
 from numpy import std, sqrt, log
 from scipy.stats import t as tdist
-from .cognitive_hierarchy import spike_poisson_alphas
+from .cognitive_hierarchy import spike_poisson_alphas, poisson_alphas
 from .db import mle_param, mle_params, mle_restarts, MissingData, index_str, _solver, _create_jobids
 from .mc import posterior_samples
 from .tasks import fit_fold
@@ -262,6 +262,15 @@ def elm(ix):
         return lambda vec: max(0.0, 1.0 - sum(vec))
     else:
         return lambda vec: vec[ix - 1]
+
+def poisson_elm(level):
+    """
+    Helper key for extracting level proportions from Poisson parameters.
+    """
+    def poisson_elm_inner(tau):
+        alphas = poisson_alphas(tau)
+        return alphas[level]
+    return poisson_elm_inner
 
 def spike_poisson_elm(level):
     """
