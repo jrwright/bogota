@@ -22,7 +22,7 @@ def weighted_linear_l0_prediction(features, weights, game, applicable_only, norm
                 fp[i] = 1.0 - fp[i]
         if normalize_activations:
             fp = normalize(fp)
-        if f is constant_binary or applicable_only == False or applicable(fp):
+        if f is constant_binary or applicable_only is False or applicable(fp):
             ws.append(w)
             fps.append(fp)
 

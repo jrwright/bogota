@@ -17,24 +17,20 @@ def normalize(ps):
     if 'game' in dir(ps):
         new_p = ps.game.mixed_strategy_profile()
         for pl in ps.game.players:
-            total = sum(ps[pl])
-            if total <= 0.0:
-                z = 1.0 / len(ps[pl])
-                for i in xrange(len(ps[pl])):
-                    new_p[pl][i] = z
-            else:
-                for i in xrange(len(ps[pl])):
-                    new_p[pl][i] = ps[pl][i]/total
+            neg = [p for p in ps[pl] if p < 0.0]
+            shift = min(neg) if len(neg) > 0 else 0.0
+            total = sum(ps[pl]) - len(ps[pl]) * shift
+            for i in xrange(len(ps[pl])):
+                new_p[pl][i] = (ps[pl][i] - shift)/total
         return new_p
     else:
-        total = sum(ps)
-        if total == 1.0:
+        neg = [p for p in ps if p < 0.0]
+        shift = min(neg) if len(neg) > 0 else 0.0
+        total = sum(ps) - len(ps) * shift
+        if total == 1.0 and shift == 0.0:
             return ps
-        elif total <= 0.0:
-            z = 1.0 / len(ps)
-            return [z for p in ps]
         else:
-            return [p/total for p in ps]
+            return [float(p - shift)/total for p in ps]
 
 
 def proportionally_mix_profiles(weights, profiles):
