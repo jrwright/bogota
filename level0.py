@@ -7,7 +7,7 @@ from bogota.utils import action_profiles, normalize, proportionally_mix_profiles
 
 # ================================ Meta-models ================================
 
-def weighted_linear_l0_prediction(features, weights, game, applicable_only, normalize_activations=True):
+def weighted_linear_l0_prediction(features, weights, game, applicable_only, normalize_activations=True, eps=1e-6):
     """
     Return a mixed profile representing a level-0 prediction for ``game``
     computed by taking a normalized weighted average of ``features`` according
@@ -17,17 +17,21 @@ def weighted_linear_l0_prediction(features, weights, game, applicable_only, norm
     fps = []
     for (w,f) in zip(weights, features):
         fp = f(game)
-        if '_inv' in dir(f) and f._inv:
-            for i in xrange(len(fp)):
-                fp[i] = 1.0 - fp[i]
         if normalize_activations:
             fp = normalize(fp)
+            if '_inv' in dir(f) and f._inv:
+                for i in xrange(len(fp)):
+                    fp[i] = 1.0 - fp[i]
+        elif '_inv' in dir(f) and f._inv:
+            for i in xrange(len(fp)):
+                fp[i] = 1.0 / (fp[i] + eps)
+                
         if f is constant_binary or applicable_only is False or applicable(fp):
             ws.append(w)
             fps.append(fp)
 
     mixed = proportionally_mix_profiles(ws, fps)
-    return normalize(mixed)    
+    return normalize(mixed)
 
 def applicable(fp):
     """
