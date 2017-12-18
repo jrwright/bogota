@@ -20,8 +20,12 @@ def normalize(ps):
             neg = [p for p in ps[pl] if p < 0.0]
             shift = min(neg) if len(neg) > 0 else 0.0
             total = sum(ps[pl]) - len(ps[pl]) * shift
-            for i in xrange(len(ps[pl])):
-                new_p[pl][i] = (ps[pl][i] - shift)/total
+            if total <= 0.0: # Everything is 0 
+                for i in xrange(len(ps[pl])):
+                    new_p[pl][i] = 1./len(ps[pl])
+            else:
+                for i in xrange(len(ps[pl])):
+                    new_p[pl][i] = (ps[pl][i] - shift)/total
         return new_p
     else:
         neg = [p for p in ps if p < 0.0]
@@ -29,6 +33,8 @@ def normalize(ps):
         total = sum(ps) - len(ps) * shift
         if total == 1.0 and shift == 0.0:
             return ps
+        elif total <= 0.0: # Everything is 0 
+            return [1./len(ps)] * len(ps)            
         else:
             return [float(p - shift)/total for p in ps]
 

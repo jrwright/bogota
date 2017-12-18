@@ -1,5 +1,5 @@
 import gambit
-from bogota.utils import game_array, normalize, near
+from bogota.utils import game_array, normalize, near, zero_profile
 
 def test_game_array():
     nfg = gambit.Game.new_table([3,3])
@@ -43,5 +43,13 @@ def test_normalize():
                      normalize(p),
                      [1./6, 2./6, 3./6,
                       2./3, 1./3, 0./3])
+
+    
+    assert near(normalize([0.0, 0.0, 0.0, 0.0]),
+                [0.25, 0.25, 0.25, 0.25])
+
+    p = zero_profile(nfg)
+    assert near(normalize(p),
+                [1./3, 1./3, 1./3, 1./3, 1./3, 1./3])
 
     
