@@ -22,6 +22,7 @@ def weighted_linear_l0_prediction(features, weights, game, applicable_only, norm
             if '_inv' in dir(f) and f._inv:
                 for i in xrange(len(fp)):
                     fp[i] = 1.0 - fp[i]
+                fp = normalize(fp)
         elif '_inv' in dir(f) and f._inv:
             for i in xrange(len(fp)):
                 fp[i] = 1.0 / (fp[i] + eps)
