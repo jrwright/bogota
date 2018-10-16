@@ -27,5 +27,8 @@ setup(
         "Operating System :: OS Independent",
     ],
     install_requires=['numpy',
-                      'gambit']
+                      'gambit'],
+    extras_require={
+        'celerytasks': ['celery', 'redis']
+    }
 )
