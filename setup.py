@@ -26,9 +26,11 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=['numpy',
-                      'gambit'],
+    install_requires=['gambit',
+                      'cma',
+                      'numpy'],
     extras_require={
-        'celerytasks': ['celery', 'redis']
+        'distributed': ['celery', 'redis'],
+        'mcmc': ['pymc']
     }
 )
