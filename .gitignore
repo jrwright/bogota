@@ -9,3 +9,5 @@ local.py
 *.hdf5
 t.*
 t
+dist/
+*.egg-info/
