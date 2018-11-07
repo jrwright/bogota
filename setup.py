@@ -21,6 +21,9 @@ setup(
     url="https://github.com/jrwright/bogota",
     # packages=find_packages(),
     packages=['bogota', 'bogota.data', 'bogota.data.pools'],
+    package_data={
+        'bogota':['2x2.agg', '2x2.nfg', 'defaults.cfg'],
+        'bogota.data.pools':['*.nfg*', '*.agg']},
     classifiers=[
         "Programming Language :: Python :: 2",
         "License :: OSI Approved :: MIT License",
