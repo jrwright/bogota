@@ -15,7 +15,7 @@ setup(
     version=__version__,
     author="James Wright",
     author_email="james.wright@ualberta.ca",
-    description="Keras implementation of GameNet and QCH with level0 features",
+    description="Implementation of models from behavioural game theory, and support for analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/jrwright/bogota",
