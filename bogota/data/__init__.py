@@ -34,6 +34,7 @@ cn_stahl2008leveln = pools.cn_stahl2008leveln.cn_stahl2008leveln
 
 import pools.cn_camerer2007heterogeneous
 cn_camerer2007heterogeneous = pools.cn_camerer2007heterogeneous.cn_camerer2007heterogeneous
+cn_rogers2009heterogeneous = cn_camerer2007heterogeneous # final journal version
 
 import pools.cn_costagomes2008stated
 cn_costagomes2008stated = pools.cn_costagomes2008stated.cn_costagomes2008stated
