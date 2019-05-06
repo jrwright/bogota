@@ -79,7 +79,7 @@ cn_cgw08_14 = cents_normalize(cgw08_14, CGW08_CENTS_PER_POINT)
 def write_games():
     for ix,g in enumerate([cn_cgw08_1, cn_cgw08_2, cn_cgw08_3, cn_cgw08_4, cn_cgw08_5, cn_cgw08_6, cn_cgw08_7, cn_cgw08_8, cn_cgw08_9, cn_cgw08_10,  cn_cgw08_11,  cn_cgw08_12,  cn_cgw08_13,  cn_cgw08_14]):
         fname = "cn_cgw08_%d.nfg" % (ix+1)
-        print fname
+        print(fname)
         with open(fname, 'wt') as f:
             g.title = "bogota.data.cn_costagomes2008stated.cn_cgw08_%d" % (ix+1)
             f.write(repr(g))
@@ -91,23 +91,23 @@ def read_data(fname, treatments = [0.012, 0.102, 0.10101]):
     """
     GAMES = [cn_cgw08_8, cn_cgw08_3, cn_cgw08_10, cn_cgw08_6, cn_cgw08_14, cn_cgw08_1, cn_cgw08_12, cn_cgw08_4, cn_cgw08_7, cn_cgw08_13, cn_cgw08_5, cn_cgw08_2, cn_cgw08_9, cn_cgw08_11]
     GAMES_STRS = ['cn_cgw08_8', 'cn_cgw08_3', 'cn_cgw08_10', 'cn_cgw08_6', 'cn_cgw08_14', 'cn_cgw08_1', 'cn_cgw08_12', 'cn_cgw08_4', 'cn_cgw08_7', 'cn_cgw08_13', 'cn_cgw08_5', 'cn_cgw08_2', 'cn_cgw08_9', 'cn_cgw08_11']
-    AIXS = [4 + 4*x for x in xrange(14)]
+    AIXS = [4 + 4*x for x in range(14)]
     ROLE_IX = 3
     TREATMENT_IX = 1
     h = dict([(gstr, zero_profile(g)) for (g, gstr) in zip(GAMES, GAMES_STRS)])
     with open(fname, 'rt') as f:
         for line in f:
-            cols = map(float, line.split())
+            cols = list(map(float, line.split()))
             if cols[TREATMENT_IX] not in treatments:
                 continue
-            print "[",
+            print("[", end=' ')
             for g, gstr, acn_ix in zip(GAMES, GAMES_STRS, AIXS):
                 aix = cols[acn_ix]-1 if cols[ROLE_IX] == 1 else 3 + cols[acn_ix]-1
-                print "%s.strategies[%d]," % (gstr, aix),
+                print("%s.strategies[%d]," % (gstr, aix), end=' ')
                 h[gstr][int(aix)] += 1
-            print "],"
-    print "\n["
+            print("],")
+    print("\n[")
     for gstr in sorted(h):
         p = h[gstr]
-        print "WeightedUncorrelatedProfile(None,make_profile(%s,%s))," % (gstr, map(int, p))
-    print "]"
+        print("WeightedUncorrelatedProfile(None,make_profile(%s,%s))," % (gstr, list(map(int, p))))
+    print("]")

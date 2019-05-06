@@ -149,14 +149,14 @@ class DataPool(object):
         r = RandomState(seed)
         train_fraction = 1 - test_fraction - validation_fraction
         games = self._generate_game_dictionary()
-        game_idx = games.keys()
+        game_idx = list(games.keys())
 
         n = len(game_idx)
         test_sz = int(round(n*test_fraction))
         valid_sz = int(round(n*validation_fraction))
         train_sz = n - test_sz - valid_sz
 
-        indices = array(range(n))
+        indices = array(list(range(n)))
         r.shuffle(indices)
 
         train = []
@@ -184,7 +184,7 @@ class DataPool(object):
         train_dnps = [wp.denormalized_profile() for wp in self._weighted_profiles]
         test_dnps = [wp.denormalized_profile() for wp in self.test_fold(seed, num_folds, fold_idx)]
         # Easiest is to just decrement the grand pool by the testing points
-        for j in xrange(len(test_dnps)):
+        for j in range(len(test_dnps)):
             for (i,n) in enumerate(test_dnps[j]):
                 train_dnps[j][i] -= test_dnps[j][i]
         if return_both:
@@ -238,7 +238,7 @@ class DataPool(object):
         r=RandomState(seed)
         remaining = [wp.denormalized_profile() for wp in self._weighted_profiles]
         folds = []
-        for fold_idx in xrange(num_folds):
+        for fold_idx in range(num_folds):
             fold = self._blank_denormalized()
             n = int(self.n) / int(num_folds)
             if fold_idx < int(self.n) % int(num_folds):
@@ -251,15 +251,15 @@ class DataPool(object):
                                seed = None, stratified=False):
         r = RandomState(seed)
         games = self._generate_game_dictionary()
-        game_idx = games.keys()
+        game_idx = list(games.keys())
         n = len(game_idx)
-        indices = range(n)
+        indices = list(range(n))
         r.shuffle(indices)
 
         if stratified:
             exp_lookup = self._experiment_lookup(games)
-            fold_indices = [ [] for ix in xrange(num_folds) ]
-            for stratum in exp_lookup.values():
+            fold_indices = [ [] for ix in range(num_folds) ]
+            for stratum in list(exp_lookup.values()):
                 # [_split_indices_into_folds] puts "overflow" items in the
                 # first folds, so sort emptier folds toward the beginning for balance.
                 fold_indices.sort(key=len)
@@ -267,7 +267,7 @@ class DataPool(object):
                 for i in stratum_indices:
                     indices.remove(i)
                 stratum_folds = self._split_indices_into_folds(stratum_indices, num_folds)
-                for ix in xrange(num_folds):
+                for ix in range(num_folds):
                     fold_indices[ix] += stratum_folds[ix]
         else:
             fold_indices = self._split_indices_into_folds(indices, num_folds)
@@ -290,8 +290,8 @@ class DataPool(object):
 
     def _experiment_lookup(self, games):
         experiments = {}
-        game_idx = games.keys()
-        indices = array(range(len(game_idx)))
+        game_idx = list(games.keys())
+        indices = array(list(range(len(game_idx))))
         for i in indices:
             exp_list = [g.game.title.split('.')[2]
                         for g in games[game_idx[i]]]
@@ -316,7 +316,7 @@ class DataPool(object):
         """
         dnps = [wp.denormalized_profile() for wp in self._weighted_profiles]
         for dnp in dnps:
-            for i in xrange(len(dnp)):
+            for i in range(len(dnp)):
                 dnp[i] = 0.0
         return dnps
 
@@ -351,7 +351,7 @@ class DataPool(object):
                         return
 
         m = sum(sum(dnp) for dnp in train)
-        for point_num in xrange(num_points):
+        for point_num in range(num_points):
             select_point()
             m -= 1
 
@@ -386,7 +386,7 @@ class WeightedUncorrelatedProfile(object):
                 try:
                     ll += m*log(p)
                 except:
-                    print "*** m=%s\tp=%s" % (m,p)
+                    print("*** m=%s\tp=%s" % (m,p))
                     raise
             elif m > 0.0:
                 # Zero-probability event occurred
@@ -400,7 +400,7 @@ class WeightedUncorrelatedProfile(object):
         """
         ret = 0.0
         np = self.normalized_profile()
-        for i in xrange(len(np)):
+        for i in range(len(np)):
             if np[i] <= 0.0:
                 continue
             ret += np[i] * (log(np[i]) - log(prediction[i]))
@@ -437,7 +437,7 @@ class WeightedUncorrelatedProfile(object):
             if Z == 0.0:
                 continue
             L = len(dnp[pl])
-            for ix in xrange(L):
+            for ix in range(L):
                 dnp[pl][ix] = (dnp[pl][ix] + 1.0) / (Z + L)
 
         return dnp
@@ -451,7 +451,7 @@ class WeightedUncorrelatedProfile(object):
         else:
             p = self._profile.copy()
             m = self._n / sum(p)
-            for i in xrange(len(p)):
+            for i in range(len(p)):
                 p[i] *= m
                 assert abs(p[i] - round(p[i])) < 1e-6
                 p[i] = round(p[i])
@@ -464,7 +464,7 @@ class WeightedUncorrelatedProfile(object):
         if self._n is None:
             p = self._profile.copy()
             np = normalize(self._profile.copy())
-            for i in xrange(len(p)):
+            for i in range(len(p)):
                 if p[i] == 0.0:
                     np[i] = 0.0
             return np

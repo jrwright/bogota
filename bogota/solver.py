@@ -3,6 +3,7 @@ Define the [Solver] class and the [solver] convenience decorator.
 """
 from warnings import warn
 import logging
+from functools import reduce
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 
@@ -42,22 +43,22 @@ def _parameter_check(fn, fittable_parameters, parameter_bounds, simplex_paramete
     parameter_scales = parameter_scales or {}
 
     # Every parameter constraint must refer to a real parameter
-    args = fn.func_code.co_varnames[1:fn.func_code.co_argcount]
-    for p in fittable_parameters + parameter_bounds.keys() + flat_simplex + parameter_scales.keys():
+    args = fn.__code__.co_varnames[1:fn.__code__.co_argcount]
+    for p in fittable_parameters + list(parameter_bounds.keys()) + flat_simplex + list(parameter_scales.keys()):
         if p not in args:
             raise TypeError("%s() has no argument named '%s'" %
                             (fn.__name__, p))
 
     if strict:
         # Every parameter omitted must have a default
-        if fn.func_defaults is None:
+        if fn.__defaults__ is None:
             num_defaults = 0
         else:
-            num_defaults = len(fn.func_defaults)
-        s = fn.func_code.co_argcount - num_defaults - 1
+            num_defaults = len(fn.__defaults__)
+        s = fn.__code__.co_argcount - num_defaults - 1
         for a in args:
             if a not in fittable_parameters and a not in kwArgs and args.index(a) < s:
-                debug("%d: fn.func_code.co_argcount=%d, len(fn.func_defaults)=%d" % (s, fn.func_code.co_argcount, len(fn.func_defaults) if fn.func_defaults is not None else -1))
+                debug("%d: fn.func_code.co_argcount=%d, len(fn.func_defaults)=%d" % (s, fn.__code__.co_argcount, len(fn.__defaults__) if fn.__defaults__ is not None else -1))
                 raise TypeError("%s() does not provide a default value for "
                                 "argument '%s', so it must be included in "
                                 "fittable_parameters." %
@@ -106,15 +107,15 @@ class Solver(object):
                     self.parameter_bounds[p] = (0.0, 1.0)
 
         # Set function arguments
-        first_default = self.fn.func_code.co_argcount
-        if self.fn.func_defaults is not None:
-            first_default -= len(self.fn.func_defaults)
+        first_default = self.fn.__code__.co_argcount
+        if self.fn.__defaults__ is not None:
+            first_default -= len(self.fn.__defaults__)
         for (i, name) in enumerate(self.fittable_parameters):
             # Plus one to skip the first arg, which is not a parameter
-            if (i+1) < first_default or self.fn.func_defaults is None:
+            if (i+1) < first_default or self.fn.__defaults__ is None:
                 setattr(self, name, 0.0)
             else:
-                setattr(self, name, self.fn.func_defaults[i+1 - first_default])
+                setattr(self, name, self.fn.__defaults__[i+1 - first_default])
 
         self.kwArgs = dict(kwArgs)
         for arg in kwArgs:
@@ -166,11 +167,11 @@ class Solver(object):
             no_cmaes = False
 
         penalty_coefficient = self.penalty_coefficient
-        for retry_count in xrange(self.constraint_iter):
+        for retry_count in range(self.constraint_iter):
             if len(self.fittable_parameters) == 1:
 
                 # Brack extraction
-                (a,b) = self.parameter_bounds.values()[0]
+                (a,b) = list(self.parameter_bounds.values())[0]
                 if a is not None and b is not None:
                     kw['brack'] = (a,b)
                     x = self.parameters[0]
@@ -234,7 +235,7 @@ class Solver(object):
             fval = -objective(self.predict)
             return fval + self.penalty_coefficient * penalty
         except:
-            print "*** %s: Rogue exception with parameters %s" % (str(self), list(self.parameters))
+            print("*** %s: Rogue exception with parameters %s" % (str(self), list(self.parameters)))
             raise
 
     def clamp(self):
@@ -242,7 +243,7 @@ class Solver(object):
         Clamp `self.parameters` to constraint-satisfying values.
         """
         # Box constraints
-        for (k, (a,b)) in self.parameter_bounds.items():
+        for (k, (a,b)) in list(self.parameter_bounds.items()):
             v = getattr(self, k)
             if a is not None and v < a:
                 setattr(self, k, a)
@@ -273,7 +274,7 @@ class Solver(object):
                 ret += (1.0 - total)**2
 
         # Box constraints
-        for (k, (a,b)) in self.parameter_bounds.items():
+        for (k, (a,b)) in list(self.parameter_bounds.items()):
             v = getattr(self, k)
             if a is not None and v < a:
                 ret += (a-v)**2
@@ -286,7 +287,7 @@ class Solver(object):
         """
         Set parameters to randomized starting values where possible.
         """
-        randomized = dict(zip(self.fittable_parameters, [False]*len(self.fittable_parameters)))
+        randomized = dict(list(zip(self.fittable_parameters, [False]*len(self.fittable_parameters))))
 
         # Simplex parameters
         for names in self.simplex_parameters:
@@ -297,7 +298,7 @@ class Solver(object):
                 self.parameters[name] = vals[i+1]
 
         # Bounded parameters
-        for (name, (a, b)) in self.parameter_bounds.items():
+        for (name, (a, b)) in list(self.parameter_bounds.items()):
             if randomized[name]:
                 # Skip already-randomized parameters (i.e., simplex params)
                 continue

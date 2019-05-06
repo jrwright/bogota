@@ -1,7 +1,7 @@
 """
 Solver support for external solvers (QRE and Nash equilibrium).
 """
-from __future__ import absolute_import
+
 from numpy import inf, linspace
 from gambit.qre import ExternalStrategicQREPathTracer
 from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver

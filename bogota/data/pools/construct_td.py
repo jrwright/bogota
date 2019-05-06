@@ -10,7 +10,7 @@ def make_travellers_dilemma(min_claim=2, max_claim=100, penalty=2):
     penalty/reward.
     """
     N = ['row', 'col']
-    A = range(min_claim, max_claim+1)
+    A = list(range(min_claim, max_claim+1))
     S = {'row':A, 'col':A}
     F = ['lt_%d' % a for a in A[1:]] + \
         ['gt_%d' % a for a in A[:-1]] + \
@@ -59,7 +59,7 @@ def make_travellers_dilemma(min_claim=2, max_claim=100, penalty=2):
 
     # Add back metadata that doesn't persist through the file format
     g.title = "Traveller's Dilemma min=%d/max=%d/r=%d" % (min_claim, max_claim, penalty)
-    for i in xrange(max_claim, min_claim-1, -1): # Descending order to avoid name collisions
+    for i in range(max_claim, min_claim-1, -1): # Descending order to avoid name collisions
         g.players[0].strategies[i-min_claim].label=str(i)
         g.players[1].strategies[i-min_claim].label=str(i)
 
@@ -74,12 +74,12 @@ def u(g, i, j):
 def compare_nfgs(g1, g2):
     if len(g1.players) != len(g2.players):
         return False, "different player counts"
-    for i in xrange(len(g1.players)):
+    for i in range(len(g1.players)):
         if len(g1.players[i].strategies) != len(g2.players[i].strategies):
             return False, "different strategy counts for player %d" % i
     assert len(g1.players) == 2
-    for i in xrange(len(g1.players[0].strategies)):
-        for j in xrange(len(g1.players[1].strategies)):
+    for i in range(len(g1.players[0].strategies)):
+        for j in range(len(g1.players[1].strategies)):
             p1 = zero_profile(g1)
             p2 = zero_profile(g2)
             p1[g1.players[0]][i] = 1.0

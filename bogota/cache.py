@@ -50,7 +50,7 @@ def find_qre_key(game, lam, tol):
     if tol <= 0.0:
         return False
 
-    newlam = min(h.keys(), key=lambda l:abs(lam - l))
+    newlam = min(list(h.keys()), key=lambda l:abs(lam - l))
     if abs(newlam - lam) <= tol:
         return True
     else:
@@ -76,7 +76,7 @@ def get_qre(game, lam, tol=0.0005):
     except KeyError:
         if tol <= 0.0:
             raise
-        newlam = min(h.keys(), key=lambda l:abs(lam - l))
+        newlam = min(list(h.keys()), key=lambda l:abs(lam - l))
         if abs(newlam - lam) <= tol:
             return h[newlam]
         else:

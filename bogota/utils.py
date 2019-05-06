@@ -21,10 +21,10 @@ def normalize(ps):
             shift = min(neg) if len(neg) > 0 else 0.0
             total = sum(ps[pl]) - len(ps[pl]) * shift
             if total <= 0.0: # Everything is 0 
-                for i in xrange(len(ps[pl])):
+                for i in range(len(ps[pl])):
                     new_p[pl][i] = 1./len(ps[pl])
             else:
-                for i in xrange(len(ps[pl])):
+                for i in range(len(ps[pl])):
                     new_p[pl][i] = (ps[pl][i] - shift)/total
         return new_p
     else:
@@ -50,11 +50,11 @@ def proportionally_mix_profiles(weights, profiles):
     denom=sum(weights[0:len(profiles)])
     new_profile = profiles[0].game.mixed_strategy_profile()
     if denom > 0:
-        for (j, ps) in enumerate(apply(zip, profiles)):
+        for (j, ps) in enumerate(zip(*profiles)):
             new_profile[j]=sum([w * x / denom for (w, x) in zip(weights, ps)])
     else:
         denom = len(profiles)
-        for (j,ps) in  enumerate(apply(zip, profiles)):
+        for (j,ps) in  enumerate(zip(*profiles)):
             new_profile[j] = sum(x/denom for x in ps)
     return new_profile
 
@@ -82,7 +82,7 @@ def fast_contingencies(game, skip=None):
 
     yield tuple(cur)
     while cur[last] < M[last]:
-        for idx in xrange(N-1, -1, -1):
+        for idx in range(N-1, -1, -1):
             if idx == skip:
                 continue
             cur[idx] += 1
@@ -142,7 +142,7 @@ def all_subsets(S):
     else:
         head = S[0]
         tail_sets = all_subsets(S[1:])
-        return map(lambda x: [head]+x, tail_sets) + tail_sets
+        return [[head]+x for x in tail_sets] + tail_sets
 
 def zero_profile(game):
     """
@@ -156,10 +156,10 @@ def make_profile(game, profile_probabilities):
     """
     p = game.mixed_strategy_profile()
     if isinstance(profile_probabilities, Number):
-        for i in xrange(len(p)):
+        for i in range(len(p)):
             p[i] = profile_probabilities
     elif len(profile_probabilities) == len(p):
-        for i in xrange(len(p)):
+        for i in range(len(p)):
             p[i]=profile_probabilities[i]
     else:
         raise TypeError("profile_probabilities should be a number or a sequence of length %d" % len(p))
@@ -222,7 +222,7 @@ def copy_table(old_game):
     """
     g = gambit.Game.new_table([len(pl.strategies) for pl in old_game.players])
     for ix in fast_contingencies(old_game):
-        for plx in xrange(len(g.players)):
+        for plx in range(len(g.players)):
             g[ix][plx] = old_game[ix][plx]
 
     g.title = old_game.title + " copy"
@@ -241,7 +241,7 @@ def game_array(game):
     dim = [len(pl.strategies) for pl in game.players] + [N]
     A = np.ndarray(dim)
     for c in fast_contingencies(game):
-        for plx in xrange(N):
+        for plx in range(N):
             A[c+(plx,)] = game[c][plx]
 
     return A

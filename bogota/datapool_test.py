@@ -48,12 +48,12 @@ def test_asymmetric():
     d2 = profile([0.25, 0.75, 0.0, 0.0])
     wp1 = datapool.WeightedUncorrelatedProfile(200, d1)
     wp2 = datapool.WeightedUncorrelatedProfile(200, d2)
-    print wp1.n, wp2.n
+    print(wp1.n, wp2.n)
     assert wp1.n == wp2.n
 
     p1 = profile([0.8, 0.2, 0.0, 0.0])
     p2 = profile([0.8, 0.2, 0.8, 0.2])
-    print wp1.log_likelihood(p1), wp2.log_likelihood(p2)
+    print(wp1.log_likelihood(p1), wp2.log_likelihood(p2))
     assert wp1.log_likelihood(p2) == wp2.log_likelihood(p2)
 
 def test_certainty():
@@ -105,7 +105,7 @@ def test_test_train():
     for (wp, wp2) in zip(test.weighted_profiles, test2.weighted_profiles):
         dnp = wp.denormalized_profile()
         dnp2 = wp2.denormalized_profile()
-        for i in xrange(len(dnp)):
+        for i in range(len(dnp)):
             assert dnp[i] == dnp2[i]
 
 
@@ -116,7 +116,7 @@ def test_divide_folds():
     pool2 = datapool.DataPool([wp2])
 
     # Check that data points are distributed properly across the folds
-    for i in xrange(10):
+    for i in range(10):
         fold1 = pool1.test_fold(1, 10, i)
         if i < 4:
             assert fold1.n == 41
@@ -136,7 +136,7 @@ def test_divide_folds():
     for (wp, wp1) in zip(train.weighted_profiles, train1.weighted_profiles):
         dnp = wp.denormalized_profile()
         dnp1 = wp1.denormalized_profile()
-        for i in xrange(len(dnp)):
+        for i in range(len(dnp)):
             assert dnp[i] == dnp1[i]
 
 def test_divide_folds_gamewise_stratified(noassert=False):
@@ -147,12 +147,12 @@ def test_divide_folds_gamewise_stratified(noassert=False):
         g.title = "bogota.datapool_test.stratum_%d.g_%d" % (s,n)
         return g
 
-    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j).mixed_strategy_profile()) for i in xrange(3) for j in xrange(20-i)]
+    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j).mixed_strategy_profile()) for i in range(3) for j in range(20-i)]
     pool = datapool.DataPool(wps)
     folds = pool._divide_folds_gamewise(5, 12345, True)
     assert noassert or sum(map(len, folds)) == len(wps)
 
-    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j,i).mixed_strategy_profile()) for i in xrange(3) for j in xrange(20-i)]
+    wps = [datapool.WeightedUncorrelatedProfile(8, new_game(i,j,i).mixed_strategy_profile()) for i in range(3) for j in range(20-i)]
     pool = datapool.DataPool(wps)
     folds = pool._divide_folds_gamewise(5, 12345, True)
     assert noassert or sum(map(len, folds)) == len(wps)

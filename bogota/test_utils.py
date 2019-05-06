@@ -19,7 +19,7 @@ def leftmost(game, eps=0.3):
     for p in game.players:
         si = profile[p]
         m = len(si)
-        for i in xrange(m):
+        for i in range(m):
             if i == 0:
                 si[i] = si[i]*eps + (1.0 - eps)
             else:
@@ -45,12 +45,12 @@ def u(g, i, j):
 def compare_nfgs(g1, g2):
     if len(g1.players) != len(g2.players):
         return False, "different player counts"
-    for i in xrange(len(g1.players)):
+    for i in range(len(g1.players)):
         if len(g1.players[i].strategies) != len(g2.players[i].strategies):
             return False, "different strategy counts for player %d" % i
     assert len(g1.players) == 2
-    for i in xrange(len(g1.players[0].strategies)):
-        for j in xrange(len(g1.players[1].strategies)):
+    for i in range(len(g1.players[0].strategies)):
+        for j in range(len(g1.players[1].strategies)):
             if u(g1, i, j) != u(g2, i, j):
                 return False, "payoffs differ at %d,%d" % (i,j)
     return True

@@ -19,11 +19,11 @@ def test_zeros():
     assert alphas == [1.0, 0.0, 0.0, 0.0]
 
     alphas = cognitive_hierarchy.spike_poisson_alphas(0.5, 0.0, 3)
-    print alphas
+    print(alphas)
     assert alphas == [1.0, 0.0, 0.0, 0.0]
 
     p = cognitive_hierarchy.spike_poisson_qch(nfg, 0.5, 0.0, 0.5)
-    print p
+    print(p)
     for pi in p:
         assert abs(pi - 0.5) < 1e-6
 

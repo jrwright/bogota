@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 import bogota.cfg as cfg
 
 if cfg.app.async:
