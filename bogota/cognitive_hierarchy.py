@@ -29,6 +29,7 @@ def qlk(game, a1, a2, lam1, lam2, lam1_2, l0_prediction=None):
         parameter_bounds={'eps1':(0.0,1.0), 'eps2':(0.0,1.0)},
         simplex_parameters=[('a1', 'a2')])
 def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
+    print("LEvel k")
     unif = game.mixed_strategy_profile()
     if l0_prediction is None:
         l0_prediction = game.mixed_strategy_profile()
