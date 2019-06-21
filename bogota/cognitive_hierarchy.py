@@ -29,7 +29,7 @@ def qlk(game, a1, a2, lam1, lam2, lam1_2, l0_prediction=None):
         parameter_bounds={'eps1':(0.0,1.0), 'eps2':(0.0,1.0)},
         simplex_parameters=[('a1', 'a2')])
 def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
-    print("LEvel k")
+
     unif = game.mixed_strategy_profile()
     if l0_prediction is None:
         l0_prediction = game.mixed_strategy_profile()
@@ -45,6 +45,19 @@ def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
                                        [l0_prediction,
                                         l1_prediction,
                                         l2_prediction])
+
+def heterogeneous_lk(game, alphas, lams, l0_prediction=None):
+    if l0_prediction is None:
+        l0_prediction = game.mixed_strategy_profile()
+    assert len(lams) == (len(alphas) - 1)
+
+    predictions = [l0_prediction]
+    for lam in lams:
+        lk = logit_br_all(predictions[-1], lam)
+        predictions.append(lk)
+
+    return proportionally_mix_profiles(alphas, predictions)
+
 
 @solver(['tau'],
         parameter_bounds={'tau':(0.0, None)})
