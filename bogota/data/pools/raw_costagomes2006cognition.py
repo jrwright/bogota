@@ -11,16 +11,16 @@ CGC06_CENTS_PER_POINT = 1.17 * 4 * 5 / 16
 
 def make_cgc06_game(title, range1, target1, range2, target2, binsize=1):
     if binsize==1:
-        Ai = range(range1[0], range1[1]+1)
-        Aj = range(range2[0], range2[1]+1)
+        Ai = list(range(range1[0], range1[1]+1))
+        Aj = list(range(range2[0], range2[1]+1))
     else:
-        Ai = range(range1[0], range1[1], binsize)
-        Aj = range(range2[0], range2[1], binsize)
+        Ai = list(range(range1[0], range1[1], binsize))
+        Aj = list(range(range2[0], range2[1], binsize))
 
     g = new_table([len(Ai), len(Aj)])
 
     # Hack to avoid conflicting with initial labels
-    for ix in xrange(len(g.strategies)):
+    for ix in range(len(g.strategies)):
         g.strategies[ix].label = "old%d" % ix
 
     # Set up labels
@@ -82,15 +82,15 @@ GAME_PARAMS = [(alpha, t2, beta, t1),
 
 GAME_ORDER = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16]
 GAME_IXS = {}
-for ix,g in zip(range(1,17), GAME_ORDER):
+for ix,g in zip(list(range(1,17)), GAME_ORDER):
     GAME_IXS[g] = ix
 
 def get_aix(interval, binsize, guess):
     best_aix = -1
     if binsize == 1:
-        Ai = range(interval[0], interval[1]+1)
+        Ai = list(range(interval[0], interval[1]+1))
     else:
-        Ai = range(interval[0], interval[1], binsize)
+        Ai = list(range(interval[0], interval[1], binsize))
     for aix, ai in enumerate(Ai):
         if ai <= guess:
             best_aix = aix
@@ -103,43 +103,43 @@ def profile_size(params, binsize):
     `params` with `binsize`.
     """
     if binsize==1:
-        Ai = range(params[0][0], params[0][1]+1)
-        Aj = range(params[2][0], params[2][1]+1)
+        Ai = list(range(params[0][0], params[0][1]+1))
+        Aj = list(range(params[2][0], params[2][1]+1))
     else:
-        Ai = range(params[0][0], params[0][1], binsize)
-        Aj = range(params[2][0], params[2][1], binsize)
+        Ai = list(range(params[0][0], params[0][1], binsize))
+        Aj = list(range(params[2][0], params[2][1], binsize))
 
     return len(Ai) + len(Aj)
 
 def parse_data(fname, binsize, treatments=[]):
     binstr = "" if binsize==1 else "_bin%s" % binsize
     h = {}
-    for gix in xrange(16):
+    for gix in range(16):
         gname = "cn_cgc06%s_%d" % (binstr, gix+1)
         h[gname] = [0]*profile_size(GAME_PARAMS[gix], binsize)
-        print "%s = make_cgc06_game('%s',%s%s)" % (gname,
+        print("%s = make_cgc06_game('%s',%s%s)" % (gname,
                                                    gname,
                                                    ','.join(map(str, GAME_PARAMS[gix])),
-                                                   "" if binsize==1 else ",%s" % binsize)
+                                                   "" if binsize==1 else ",%s" % binsize))
     with open(fname, 'rt') as f:
-        print "cn_costagomes2006cognition%s_traces=TraceSet([" % (binstr)
+        print("cn_costagomes2006cognition%s_traces=TraceSet([" % (binstr))
         for line in f:
-            print "[",
+            print("[", end=' ')
             cols = line.split('\t')
             for colx,gid in enumerate(GAME_ORDER):
                 guess = int(round(float(cols[colx+1])))
                 aix = get_aix(GAME_PARAMS[gid-1][0], binsize, guess)
                 gname = "cn_cgc06%s_%d" % (binstr, gid)
-                print "%s.strategies[%d]," % (gname, aix),
+                print("%s.strategies[%d]," % (gname, aix), end=' ')
                 h[gname][aix] += 1
-            print "],"
-        print "])"
+            print("],")
+        print("])")
 
-    print "\ncn_costagomes2006cognition%s=DataPool([" % (binstr)
+    print("\ncn_costagomes2006cognition%s=DataPool([" % (binstr))
     for gstr in sorted(h):
         p = h[gstr]
-        print "WeightedUncorrelatedProfile(None,make_profile(%s,%s))," % (gstr, map(int, p))
-    print "])"
+        print("WeightedUncorrelatedProfile(None,make_profile(%s,%s))," % (gstr, list(map(int, p))))
+    print("])")
 
 cn_cgc06_1 = None
 cn_cgc06_2 = None
@@ -162,37 +162,37 @@ def construct_unbinned():
     global cn_cgc06_1, cn_cgc06_2, cn_cgc06_3, cn_cgc06_4, cn_cgc06_5, cn_cgc06_6, cn_cgc06_7, cn_cgc06_8,\
         cn_cgc06_9, cn_cgc06_10, cn_cgc06_11, cn_cgc06_12, cn_cgc06_13, cn_cgc06_14, cn_cgc06_15, cn_cgc06_16
 
-    print "cn_cgc06_1..."
+    print("cn_cgc06_1...")
     cn_cgc06_1 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_1',[100, 500],0.7,[100, 900],0.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_2..."
+    print("cn_cgc06_2...")
     cn_cgc06_2 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_2',[100, 900],0.5,[100, 500],0.7), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_3..."
+    print("cn_cgc06_3...")
     cn_cgc06_3 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_3',[100, 900],0.5,[300, 500],0.7), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_4..."
+    print("cn_cgc06_4...")
     cn_cgc06_4 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_4',[300, 500],0.7,[100, 900],0.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_5..."
+    print("cn_cgc06_5...")
     cn_cgc06_5 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_5',[300, 500],1.5,[300, 900],1.3), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_6..."
+    print("cn_cgc06_6...")
     cn_cgc06_6 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_6',[300, 900],1.3,[300, 500],1.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_7..."
+    print("cn_cgc06_7...")
     cn_cgc06_7 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_7',[300, 900],1.3,[300, 900],1.3), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_8..."
+    print("cn_cgc06_8...")
     cn_cgc06_8 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_8',[300, 900],1.3,[300, 900],1.3), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_9..."
+    print("cn_cgc06_9...")
     cn_cgc06_9 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_9',[100, 900],0.5,[100, 500],1.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_10..."
+    print("cn_cgc06_10...")
     cn_cgc06_10 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_10',[100, 500],1.3,[100, 900],0.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_11..."
+    print("cn_cgc06_11...")
     cn_cgc06_11 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_11',[300, 900],0.7,[100, 900],1.3), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_12..."
+    print("cn_cgc06_12...")
     cn_cgc06_12 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_12',[100, 900],1.3,[300, 900],0.7), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_13..."
+    print("cn_cgc06_13...")
     cn_cgc06_13 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_13',[300, 500],0.7,[100, 900],1.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_14..."
+    print("cn_cgc06_14...")
     cn_cgc06_14 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_14',[100, 900],1.5,[300, 500],0.7), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_15..."
+    print("cn_cgc06_15...")
     cn_cgc06_15 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_15',[100, 500],0.7,[100, 500],1.5), CGC06_CENTS_PER_POINT)
-    print "cn_cgc06_16..."
+    print("cn_cgc06_16...")
     cn_cgc06_16 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_16',[100, 500],1.5,[100, 500],0.7), CGC06_CENTS_PER_POINT)
 
 cn_cgc06_bin10_1 = cents_normalize(make_cgc06_game('bogota.data.cn_costagomes2006cognition.cn_cgc06_bin10_1',[100, 500],0.7,[100, 900],0.5,10), CGC06_CENTS_PER_POINT)
@@ -235,15 +235,15 @@ def write_games(unbinned):
               cn_cgc06_bin25_1, cn_cgc06_bin25_2, cn_cgc06_bin25_3, cn_cgc06_bin25_4, cn_cgc06_bin25_5, cn_cgc06_bin25_6, cn_cgc06_bin25_7, cn_cgc06_bin25_8, cn_cgc06_bin25_9, cn_cgc06_bin25_10, cn_cgc06_bin25_11, cn_cgc06_bin25_12, cn_cgc06_bin25_13, cn_cgc06_bin25_14, cn_cgc06_bin25_15, cn_cgc06_bin25_16]:
         fname = g.title[s:] + '.nfg'
         with open(fname, 'wt') as f:
-            print fname
+            print(fname)
             f.write(repr(g))
 
     if unbinned:
-        print "Constructing unbinned..."
+        print("Constructing unbinned...")
         construct_unbinned()
         for g in [cn_cgc06_1, cn_cgc06_2, cn_cgc06_3, cn_cgc06_4, cn_cgc06_5, cn_cgc06_6, cn_cgc06_7, cn_cgc06_8, cn_cgc06_9, cn_cgc06_10, cn_cgc06_11, cn_cgc06_12, cn_cgc06_13, cn_cgc06_14, cn_cgc06_15, cn_cgc06_16]:
             fname = g.title[s:] + '.nfg'
             with open(fname, 'wt') as f:
-                print fname
+                print(fname)
                 f.write(repr(g))
 

@@ -29,6 +29,7 @@ def qlk(game, a1, a2, lam1, lam2, lam1_2, l0_prediction=None):
         parameter_bounds={'eps1':(0.0,1.0), 'eps2':(0.0,1.0)},
         simplex_parameters=[('a1', 'a2')])
 def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
+
     unif = game.mixed_strategy_profile()
     if l0_prediction is None:
         l0_prediction = game.mixed_strategy_profile()
@@ -44,6 +45,19 @@ def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
                                        [l0_prediction,
                                         l1_prediction,
                                         l2_prediction])
+
+def heterogeneous_lk(game, alphas, lams, l0_prediction=None):
+    if l0_prediction is None:
+        l0_prediction = game.mixed_strategy_profile()
+    assert len(lams) == (len(alphas) - 1)
+
+    predictions = [l0_prediction]
+    for lam in lams:
+        lk = logit_br_all(predictions[-1], lam)
+        predictions.append(lk)
+
+    return proportionally_mix_profiles(alphas, predictions)
+
 
 @solver(['tau'],
         parameter_bounds={'tau':(0.0, None)})
@@ -101,7 +115,7 @@ def heterogeneous_quantal_ch(game, alphas, lams, l0_prediction=None, per_level=F
     level_profiles = [l0_prediction]
     accum = alphas[0]
     belief = l0_prediction
-    for k,lam in zip(xrange(1, len(alphas)), lams):
+    for k,lam in zip(range(1, len(alphas)), lams):
         qbr = logit_br_all(belief, lam)
         level_profiles.append(qbr)
         belief = proportionally_mix_profiles([accum, alphas[k]], [belief, qbr])
@@ -127,14 +141,14 @@ def spike_poisson_alphas(eps, tau, top_level=7):
     if tau == 0.0 or eps == 1.0:
         return [1.0] + ([0.0] * top_level)
     nonzero = 1.0-eps
-    alphas = [nonzero * scipy.stats.poisson.pmf(k, tau) for k in xrange(0, top_level+1)]
+    alphas = [nonzero * scipy.stats.poisson.pmf(k, tau) for k in range(0, top_level+1)]
     alphas[0] += eps
     return alphas
 
 def poisson_alphas(tau, top_level=7):
     if tau <= 0.0:
         return [1.0] + ([0.0]*top_level)
-    return [scipy.stats.poisson.pmf(k, tau) for k in xrange(0, top_level+1)]
+    return [scipy.stats.poisson.pmf(k, tau) for k in range(0, top_level+1)]
 
 
 # =============================== Logit response ==============================
@@ -158,7 +172,7 @@ def logit_br(profile, lam, agent, new_profile=None):
         new_profile=profile.game.mixed_strategy_profile()
     ps = multi_logit(lam, profile.strategy_values(agent))
     new_strategy = new_profile[agent]
-    for j in xrange(len(new_strategy)):
+    for j in range(len(new_strategy)):
         new_strategy[j] = ps[j]
     return new_strategy
 
@@ -167,7 +181,7 @@ def multi_logit(lam, xs):
     Return a normalized array of probabilities, where each is proportional to
     $exp(``lam``*``x``)$.
     """
-    if not isinstance(xs, np.ndarray) or xs.dtype <> np.dtype('float64'):
+    if not isinstance(xs, np.ndarray) or xs.dtype != np.dtype('float64'):
         xs = np.asarray(xs, dtype='float64')
     xs *= lam
     max_x = max(xs)

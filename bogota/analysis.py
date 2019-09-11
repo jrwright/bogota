@@ -1,6 +1,7 @@
 import sys
 import csv
 import logging
+from functools import reduce
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 warning = logging.getLogger(__name__).warning
@@ -115,7 +116,7 @@ def mle_parameter_interval(parameter_name,
 
     for fold_seed in fold_seeds:
         data = []
-        for fold_idx in xrange(max(num_folds, 1)):
+        for fold_idx in range(max(num_folds, 1)):
             idx_done = [c for c in completed_restarts if c[0]==fold_seed and c[1]==fold_idx]
             try:
                 if queue_missing=='fast':
@@ -142,13 +143,13 @@ def mle_parameter_interval(parameter_name,
                     fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
                              by_game, stratified,
                              completed_restarts=completed_restarts, queued=queued,
-                             create_job=(queue_missing<>'fast'))
+                             create_job=(queue_missing!='fast'))
         if len(data) > 0:
             avgs.append(sum(data)/len(data))
 
     if missing and not report_intermediate:
         raise missing
-    if missing > 0 and queue_missing <> 'fast':
+    if missing > 0 and queue_missing != 'fast':
         warning("%d/%d rows missing for %s" % (missing, max(len(fold_seeds)*num_folds, 1),
                                             index_str(solver_name, pool_name, fold_seeds, num_folds, [], by_game, stratified)))
     if len(avgs) > 1:
@@ -318,7 +319,7 @@ def main(mod):
             if dash >= 0:
                 L = int(s[:dash])
                 R = int(s[dash+1:])
-                ints += range(L, R+1)
+                ints += list(range(L, R+1))
             else:
                 ints.append(int(s))
         return ints

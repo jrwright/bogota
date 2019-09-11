@@ -35,9 +35,9 @@ def export_cgw08(pool=cn_costagomes2008stated, row_actions=['T', 'M', 'B'], col_
             for head in col_actions:
                 out.write(" \\> $%s$" % head)
             out.write(" \\\\\n")
-            for i in xrange(n_row):
+            for i in range(n_row):
                 out.write(" $%s$" % row_actions[i])
-                for j in xrange(n_col):
+                for j in range(n_col):
                     out.write(" \\> $%d,%d$" % (float(wp.game[i,j][0])/norm, float(wp.game[i,j][1])/norm))
                 if i < n_row-1:
                     out.write(" \\\\")
@@ -50,9 +50,9 @@ def export_cgw08(pool=cn_costagomes2008stated, row_actions=['T', 'M', 'B'], col_
         for wp in sorted_profiles:
             name = wp.game.title[wp.game.title.rindex('.')+1:].replace("_", "-").upper()[len("cn_"):]
             dnp = wp.denormalized_profile()
-            for i in xrange(n_row):
+            for i in range(n_row):
                 out.write("%s,%s,%d,%s,%d\n" % (stem.upper(), name, 1, row_actions[i], dnp[wp.game.players[0]][i]))
-            for j in xrange(n_col):
+            for j in range(n_col):
                 out.write("%s,%s,%d,%s,%d\n" % (stem.upper(), name, 2, row_actions[j], dnp[wp.game.players[1]][j]))
 
     # -observations.tex
@@ -61,7 +61,7 @@ def export_cgw08(pool=cn_costagomes2008stated, row_actions=['T', 'M', 'B'], col_
         for wp in sorted_profiles:
             name = wp.game.title[wp.game.title.rindex('.')+1:].replace("_", "-").upper()[len("cn_"):]
             col1 = "\\parbox[b]{2in}{%s}" % name
-            for i in xrange(n_row):
+            for i in range(n_row):
                 out.write(col1)
                 col1 = "\\nopagebreak"
                 out.write(" & $%s$ & $%2d$  & $%s$ & $%2d$ \\\\\n" % (row_actions[i], dnp[wp.game.players[0]][i],
@@ -72,8 +72,8 @@ def export_cgw08(pool=cn_costagomes2008stated, row_actions=['T', 'M', 'B'], col_
         name = wp.game.title[wp.game.title.rindex('.')+1:].replace("_", "-")[len("cn_"):]
         fname = name + ".nfg"
         g = gambit.Game.new_table([n_row,n_col])
-        for i in xrange(n_row):
-            for j in xrange(n_col):
+        for i in range(n_row):
+            for j in range(n_col):
                 g[i,j][0] = int(float(wp.game[i,j][0])/norm)
                 g[i,j][1] = int(float(wp.game[i,j][1])/norm)
         with open(fname, 'wt') as out:
@@ -86,11 +86,11 @@ def main():
         stem = wp.game.title[wp.game.title.rindex('.')+1:]
         fname = stem + '.csv'
         dnp = wp.denormalized_profile()
-        print """
+        print("""
 if [ -e %s ]; then
   cp %s %s
 fi
-        """ % (stem[3:]+'.nfg', fname, stem[3:]+'.csv')
+        """ % (stem[3:]+'.nfg', fname, stem[3:]+'.csv'))
         with open(fname, 'wb') as f:
             w = csv.writer(f)
             for pl in dnp.game.players:

@@ -4,6 +4,7 @@ Linear level-0 meta-model.
 from numpy import inf
 from bogota.cognitive_hierarchy import multi_logit
 from bogota.utils import action_profiles, normalize, proportionally_mix_profiles, zero_profile, fast_contingencies
+from functools import reduce
 
 # ================================ Meta-models ================================
 
@@ -20,11 +21,11 @@ def weighted_linear_l0_prediction(features, weights, game, applicable_only, norm
         if normalize_activations:
             fp = normalize(fp)
             if '_inv' in dir(f) and f._inv:
-                for i in xrange(len(fp)):
+                for i in range(len(fp)):
                     fp[i] = 1.0 - fp[i]
                 fp = normalize(fp)
         elif '_inv' in dir(f) and f._inv:
-            for i in xrange(len(fp)):
+            for i in range(len(fp)):
                 fp[i] = 1.0 / (fp[i] + eps)
                 
         if f is constant_binary or applicable_only is False or applicable(fp):
@@ -40,7 +41,7 @@ def applicable(fp):
     """
     for pl in fp.game.players:
         si = fp[pl]
-        for i in xrange(len(si)):
+        for i in range(len(si)):
             if si[i] != si[0]:
                 return True
     return False
@@ -60,16 +61,16 @@ def logit_l0_prediction(features, weights, link_lam, game, normalize_activations
         if normalize_activations:
             fp = normalize(fp)
         if '_inv' in dir(f) and f._inv:
-            for i in xrange(len(fp)):
+            for i in range(len(fp)):
                 fp[i] = -fp[i]
-        for i in xrange(len(activations)):
+        for i in range(len(activations)):
             activations[i] += w*fp[i]
 
     new_p = game.mixed_strategy_profile()
     for pl in game.players:
         q = multi_logit(link_lam, activations[pl])
         pi = new_p[pl]
-        for i in xrange(len(pi)):
+        for i in range(len(pi)):
             pi[i] = q[i]
 
     return new_p
@@ -95,7 +96,7 @@ def constant_binary(game):
     Every action is equally salient.
     """
     p = game.mixed_strategy_profile()
-    for i in xrange(len(p)):
+    for i in range(len(p)):
         p[i] = 1.0
     return p
 
@@ -107,12 +108,12 @@ def max_payoff(game):
     The max payoff of each action.
     """
     m = game.mixed_strategy_profile()
-    for i in xrange(len(m)):
+    for i in range(len(m)):
         m[i] = -inf
     for pl in game.players:
         for p in action_profiles(game, pl, game.mixed_strategy_profile()):
             vs = p.strategy_values(pl)
-            for i in xrange(len(vs)):
+            for i in range(len(vs)):
                 m[pl][i] = max(vs[i], m[pl][i])
     return m
 
@@ -122,12 +123,12 @@ def min_payoff(game):
     The min payoff of each action.
     """
     m = game.mixed_strategy_profile()
-    for i in xrange(len(m)):
+    for i in range(len(m)):
         m[i] = inf
     for pl in game.players:
         for p in action_profiles(game, pl, game.mixed_strategy_profile()):
             vs = p.strategy_values(pl)
-            for i in xrange(len(vs)):
+            for i in range(len(vs)):
                 m[pl][i] = min(vs[i], m[pl][i])
     return m
 
@@ -140,18 +141,18 @@ def relative_max_regret(game, digits=6):
     """
     mx = dict((pl, -inf) for pl in game.players)
     r = game.mixed_strategy_profile()
-    for i in xrange(len(r)):
+    for i in range(len(r)):
         r[i] = 0.0
     for pl in game.players:
         for p in action_profiles(game, pl, game.mixed_strategy_profile()):
             vs = p.strategy_values(pl)
             M = reduce(max, vs)
             mx[pl] = max(mx[pl], M)
-            for i in xrange(len(vs)):
+            for i in range(len(vs)):
                 r[pl][i] = max(r[pl][i], round(M-vs[i], digits))
 
     for pl in game.players:
-        for ix in xrange(len(r[pl])):
+        for ix in range(len(r[pl])):
             r[pl][ix] = round(r[pl][ix] / mx[pl], digits)
 
     return r
@@ -163,14 +164,14 @@ def max_regret(game, digits=6):
     """
     mx = dict((pl, -inf) for pl in game.players)
     r = game.mixed_strategy_profile()
-    for i in xrange(len(r)):
+    for i in range(len(r)):
         r[i] = 0.0
     for pl in game.players:
         for p in action_profiles(game, pl, game.mixed_strategy_profile()):
             vs = p.strategy_values(pl)
             M = reduce(max, vs)
             mx[pl] = max(mx[pl], M)
-            for i in xrange(len(vs)):
+            for i in range(len(vs)):
                 r[pl][i] = max(r[pl][i], round(M-vs[i], digits))
 
     return r
@@ -182,7 +183,7 @@ def max_efficiency(game):
     The maximum combined payoffs (efficiency) of each action.
     """
     m = game.mixed_strategy_profile()
-    for i in xrange(len(m)):
+    for i in range(len(m)):
         m[i] = -inf
     actions = [None]*len(game.players)
     for p in action_profiles(game, reuseProfile=game.mixed_strategy_profile(), actions=actions):
@@ -197,7 +198,7 @@ def min_unfairness(game):
     The lowest max-min spread for each action.
     """
     m = game.mixed_strategy_profile()
-    for i in xrange(len(m)):
+    for i in range(len(m)):
         m[i] = inf
     actions = [None]*len(game.players)
     for p in action_profiles(game, reuseProfile=game.mixed_strategy_profile(), actions=actions):
@@ -216,14 +217,14 @@ def symmetric_payoffs(game):
     """
     p = game.mixed_strategy_profile()
     m = game.mixed_strategy_profile()
-    for i in xrange(len(m)):
+    for i in range(len(m)):
         m[i] = 0.0
         p[i] = 0.0
 
     if not is_symmetric_game(game):
         return m
 
-    for ai in xrange(len(m[game.players[0]])):
+    for ai in range(len(m[game.players[0]])):
         for pl in game.players:
             p[pl][ai] = 1.0
         for pl in game.players:
@@ -262,7 +263,7 @@ def is_strictly_symmetric_game(game):
         revC = tuple(reversed(c))
         revU = [game[revC][pl] for pl in game.players ]
         revU.reverse()
-        if revU <> U:
+        if revU != U:
             return False
 
     return True
@@ -289,7 +290,7 @@ def gen_binary_feature(feature_name, raw_feature, reduce_op, docstring):
         return p
 
     feature.__doc__ = docstring
-    feature.func_name = feature_name
+    feature.__name__ = feature_name
     return memodict(feature)
 
 minimax_regret = gen_binary_feature('minimax_regret', max_regret, min,

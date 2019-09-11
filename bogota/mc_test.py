@@ -12,7 +12,7 @@ def test_stochastic_slices():
     assert slices[rvs[0]].stop - slices[rvs[0]].start == 210
     assert slices[rvs[1]].stop - slices[rvs[1]].start == 2
     assert slices[rvs[2]].stop - slices[rvs[2]].start == 1
-    assert max(s.stop for s in slices.values()) == 213
+    assert max(s.stop for s in list(slices.values())) == 213
 
 
 def test_theta():

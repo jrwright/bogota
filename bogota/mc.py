@@ -5,6 +5,7 @@ import glob
 import hashlib
 import itertools
 import logging
+from functools import reduce
 debug = logging.getLogger(__name__).debug
 
 import numpy as np
@@ -35,10 +36,10 @@ def multinomial_rvs(pool, predictor, fittable_parameters, fixed_parameters={}):
     parameters, plus a new set of variables called `obs`.
     """
     if isinstance(fittable_parameters, dict):
-        rvs = dict(fittable_parameters.items())
+        rvs = dict(list(fittable_parameters.items()))
     else:
         rvs = dict((str(p), p) for p in fittable_parameters)
-    args = dict(fixed_parameters.items() + rvs.items())
+    args = dict(list(fixed_parameters.items()) + list(rvs.items()))
 
     debug("Constructing RVs for predictor '%s'", predictor)
     debug("fittable_parameters=%s", fittable_parameters)
@@ -92,16 +93,16 @@ def find_MAP(rvs, restarts = 10,
     for j in stochastic:
         best_values.append(0)
 
-    for r in xrange(restarts):
+    for r in range(restarts):
         m.fit(method=method, verbose=verbose, iterlim=iterlim, tol=tol)
         if m.logp > maxm:
             maxm = m.logp
-            for j in xrange(len(stochastic)):
+            for j in range(len(stochastic)):
                 best_values[j] = stochastic[j].value
-        for j in xrange(len(stochastic)):
+        for j in range(len(stochastic)):
             stochastic[j].random()
 
-    for j in xrange(len(stochastic)):
+    for j in range(len(stochastic)):
         stochastic[j].value = best_values[j]
 
 
@@ -164,7 +165,7 @@ def posterior_chains(predictor_name, pool_name, prior_rvs_expr,
     h = posterior_dbs(predictor_name, pool_name, prior_rvs_expr,
                         iter, burn, thin, prefix)
     ret = []
-    for chain, db in h.items():
+    for chain, db in list(h.items()):
         k = db.trace_names[0][0]
         completed = len(db.trace(k, chain=None)[:])
         db.close()
@@ -184,13 +185,13 @@ def posterior_samples(predictor_name, pool_name, prior_rvs_expr,
                       iter, burn, thin, prefix)
     ret = []
     sz = 0
-    for db in h.values():
+    for db in list(h.values()):
         if isinstance(param_name, list) or isinstance(param_name, tuple):
             debug("grabbing %d traces", len(param_name))
             trs = [ db.trace(name, chain=None) for name in param_name ]
             sz += reduce(min, [tr.length() for tr in trs])
             debug("grabbed traces of length %s", [tr.length() for tr in trs])
-            tr = itertools.izip(*trs)
+            tr = zip(*trs)
             debug("izip constructed")
         else:
             tr = db.trace(param_name, chain=None)
@@ -265,7 +266,7 @@ def model_to_theta(slices, theta=None):
     first if necessary.
     """
     if theta is None:
-        sz = max(s.stop for s in slices.values())
+        sz = max(s.stop for s in list(slices.values()))
         theta = np.ndarray(sz)
 
     for rv in slices:

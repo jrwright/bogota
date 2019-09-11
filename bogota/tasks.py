@@ -1,11 +1,12 @@
 """
 Tasks that can be potentially queued for offline runs.
 """
-from __future__ import absolute_import
+
 import os.path
 import sys
 from timeit import default_timer as tick
 import logging
+import importlib
 info = logging.getLogger(__name__).info
 debug = logging.getLogger(__name__).debug
 warning = logging.getLogger(__name__).warning
@@ -50,7 +51,7 @@ def _sample_posterior_task(predictor_name, pool_name, prior_rvs_expr,
 
     if os.path.isfile(fname):
         db = pm.database.pickle.load(fname)
-        completed = len(db.trace(rvs.keys()[0], chain=None)[:]) if db.chains > 0 else 0
+        completed = len(db.trace(list(rvs.keys())[0], chain=None)[:]) if db.chains > 0 else 0
         debug("Loaded '%s' [%d samples in %d chains]", fname, completed, db.chains)
     else:
         db = 'pickle'
@@ -121,7 +122,7 @@ def sample_posterior(predictor_name, pool_name, prior_rvs_expr,
     subtasks = []
 
     # Queue up unqueued, uncompleted chains
-    for chx in xrange(num_chains):
+    for chx in range(num_chains):
         if chx in completed_chains or chx in queued_chains:
             continue
         if cfg.app.async:
@@ -153,7 +154,7 @@ def posterior_queued_chains():
     ret = {}
     tasks = all_pending_tasks()
     for task in tasks:
-        if task['name'] <> 'bogota.tasks._sample_posterior_task':
+        if task['name'] != 'bogota.tasks._sample_posterior_task':
             continue
         args = task['args']
         key = tuple(args[0:-1])
@@ -231,7 +232,7 @@ def fit_fold(solver_name, pool_name, fold_seed, num_folds, fold_idx,
 
     subtasks = []
 
-    for rsx in xrange(num_restarts):
+    for rsx in range(num_restarts):
         if (fold_seed, fold_idx, rsx) in completed_restarts or rsx in queued_restarts:
             continue
         if cfg.app.async:
@@ -267,7 +268,7 @@ def mle_queued_restarts():
     tasks = all_pending_tasks()
     ret = {}
     for task in tasks:
-        if task['name'] <> 'bogota.tasks._fit_fold_task':
+        if task['name'] != 'bogota.tasks._fit_fold_task':
             continue
         args = task['args']
         key = tuple(args[1:])
@@ -286,7 +287,7 @@ def preimport(name):
         while dotx > 0:
             mod = __import__(name[:dotx])
             info("reload %s", name[:dotx])
-            reload(mod) # Use the most recent version
+            importlib.reload(mod) # Use the most recent version
             dotx = name.find('.', dotx+1)
     except ImportError:
         pass
@@ -309,7 +310,7 @@ def all_pending_tasks():
     qt = queued_tasks()
 
     tasks = qt
-    for vs in h1.values() + h2.values():
+    for vs in list(h1.values()) + list(h2.values()):
         for v in vs:
             tasks.append({'name':v['name'], 'args':eval(v['args'])})
 

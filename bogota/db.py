@@ -1,7 +1,7 @@
 """
 Interface for saving/restoring values from the database.
 """
-from __future__ import absolute_import
+
 import sys
 import bogota.cfg as cfg
 import logging
@@ -27,16 +27,16 @@ def save_mle_params(train_ll, test_ll, walltime,
 
         try:
             c.executemany(ins_sql,
-                          zip([jobid] * num_params,
+                          list(zip([jobid] * num_params,
                               [restart_idx] * num_params,
                               ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
-                              map(float, [train_ll, test_ll, walltime] + parameter_values)))
+                              list(map(float, [train_ll, test_ll, walltime] + parameter_values)))))
         except Exception as err:
             error("Failed SQL query '%s' with args %s" % (ins_sql,
-                          zip([jobid] * num_params,
+                          list(zip([jobid] * num_params,
                               [restart_idx] * num_params,
                               ['TRAIN_LL', 'LL', 'WALLTIME'] + parameter_names,
-                              map(float, [train_ll, test_ll, walltime] + parameter_values))))
+                              list(map(float, [train_ll, test_ll, walltime] + parameter_values))))))
             raise err
         db.commit()
 
@@ -67,7 +67,7 @@ def mle_restarts(solver_name, pool_name, fold_seeds, num_folds,
                   """
             c.execute(_sql(db, sql), [solver_name, pool_name, fold_seed, num_folds, by_game, stratified])
             vals = c.fetchall()
-            ret += map(lambda x: tuple(x), vals)
+            ret += [tuple(x) for x in vals]
     debug("%d restarts completed for %s/%s/%s/%d", len(ret),
           solver_name, pool_name, fold_seeds, num_folds)
     return ret
@@ -131,7 +131,7 @@ def mle_params(solver_name, pool_name, fold_seed, num_folds, fold_idx,
         for name, val, train_ll in vals:
             if best_train_ll is None:
                 best_train_ll = train_ll
-            elif train_ll <> best_train_ll:
+            elif train_ll != best_train_ll:
                 break
             ret[name] = val
 
@@ -169,7 +169,7 @@ def _ensure_jobid(db, solver_name, pool_name, fold_seed, num_folds, fold_idx, by
         raise ValueError("solver_name length (%d) exceeds %d chars: '%s'" % (len(solver_name), SOLVER_NAME_LEN, solver_name))
     isql = "N/A"
     db = db or db_connect()
-    for ix in xrange(2):
+    for ix in range(2):
         c = db.cursor()
         if db.__class__.__module__ == 'sqlite3':
             c.execute("BEGIN TRANSACTION")
@@ -228,7 +228,7 @@ def _create_jobids(solver_name, pool_name, fold_seeds, num_folds, by_game, strat
 
         ins = []
         for fold_seed in fold_seeds:
-            for fold_idx in xrange(num_folds):
+            for fold_idx in range(num_folds):
                 job = (solver_name, pool_name, fold_seed, num_folds, fold_idx, by_game, stratified)
                 if job not in existing:
                     ins.append(job)
@@ -369,7 +369,7 @@ def _solver(spec):
     """
     Evaluate ``spec`` if necessary to construct a Solver.
     """
-    if isinstance(spec, str) or isinstance(spec, unicode):
+    if isinstance(spec, str) or isinstance(spec, str):
         # strip "broken" prefix
         if spec[0:len("broken.")] == "broken.":
             warn("stripping 'broken.' from '%s'" % (spec,))
