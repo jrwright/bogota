@@ -8,43 +8,6 @@ from bogota.utils import proportionally_mix_profiles, normalize
 
 # ============================= Solution concepts =============================
 
-@solver(['a1', 'a2', 'lam1', 'lam2', 'lam1_2'],
-        parameter_bounds={'lam1':(0.0,None), 'lam2':(0.0,None), 'lam1_2':(0.0,None)},
-        simplex_parameters=[('a1', 'a2')])
-def qlk(game, a1, a2, lam1, lam2, lam1_2, l0_prediction=None):
-    if l0_prediction is None:
-        l0_prediction = game.mixed_strategy_profile()
-    a0 = max(0.0, 1.0-a1-a2)
-
-    l1_prediction = logit_br_all(l0_prediction, lam1)
-    l1_2_prediction = logit_br_all(l0_prediction, lam1_2)
-    l2_prediction = logit_br_all(l1_2_prediction, lam2)
-
-    return proportionally_mix_profiles([a0, a1, a2],
-                                       [l0_prediction,
-                                        l1_prediction,
-                                        l2_prediction])
-
-@solver(['a1', 'a2', 'eps1', 'eps2'],
-        parameter_bounds={'eps1':(0.0,1.0), 'eps2':(0.0,1.0)},
-        simplex_parameters=[('a1', 'a2')])
-def lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
-    unif = game.mixed_strategy_profile()
-    if l0_prediction is None:
-        l0_prediction = game.mixed_strategy_profile()
-    a0 = max(0.0, 1.0-a1-a2)
-
-    l1 = logit_br_all(l0_prediction, lam)
-    l1_prediction = proportionally_mix_profiles([eps1, 1.0-eps1], [unif, l1])
-
-    l2 = logit_br_all(l1, lam)
-    l2_prediction = proportionally_mix_profiles([eps2, 1.0-eps2], [unif, l2])
-
-    return proportionally_mix_profiles([a0, a1, a2],
-                                       [l0_prediction,
-                                        l1_prediction,
-                                        l2_prediction])
-
 @solver(['tau'],
         parameter_bounds={'tau':(0.0, None)})
 def poisson_ch(game, tau, l0_prediction=None, top_level=7, per_level=False):
@@ -111,6 +74,46 @@ def heterogeneous_quantal_ch(game, alphas, lams, l0_prediction=None, per_level=F
         return level_profiles
     else:
         return proportionally_mix_profiles(alphas, level_profiles)
+
+# ================ Solution concepts from specific related work ===============
+
+@solver(['a1', 'a2', 'lam1', 'lam2', 'lam1_2'],
+        parameter_bounds={'lam1':(0.0,None), 'lam2':(0.0,None), 'lam1_2':(0.0,None)},
+        simplex_parameters=[('a1', 'a2')])
+def stahl94_qlk(game, a1, a2, lam1, lam2, lam1_2, l0_prediction=None):
+    if l0_prediction is None:
+        l0_prediction = game.mixed_strategy_profile()
+    a0 = max(0.0, 1.0-a1-a2)
+
+    l1_prediction = logit_br_all(l0_prediction, lam1)
+    l1_2_prediction = logit_br_all(l0_prediction, lam1_2)
+    l2_prediction = logit_br_all(l1_2_prediction, lam2)
+
+    return proportionally_mix_profiles([a0, a1, a2],
+                                       [l0_prediction,
+                                        l1_prediction,
+                                        l2_prediction])
+
+@solver(['a1', 'a2', 'eps1', 'eps2'],
+        parameter_bounds={'eps1':(0.0,1.0), 'eps2':(0.0,1.0)},
+        simplex_parameters=[('a1', 'a2')])
+def cgc01_lk(game, a1, a2, eps1, eps2, lam=1000.0, l0_prediction=None):
+    unif = game.mixed_strategy_profile()
+    if l0_prediction is None:
+        l0_prediction = game.mixed_strategy_profile()
+    a0 = max(0.0, 1.0-a1-a2)
+
+    l1 = logit_br_all(l0_prediction, lam)
+    l1_prediction = proportionally_mix_profiles([eps1, 1.0-eps1], [unif, l1])
+
+    l2 = logit_br_all(l1, lam)
+    l2_prediction = proportionally_mix_profiles([eps2, 1.0-eps2], [unif, l2])
+
+    return proportionally_mix_profiles([a0, a1, a2],
+                                       [l0_prediction,
+                                        l1_prediction,
+                                        l2_prediction])
+
 
 # =========================== distribution utilities ==========================
 
