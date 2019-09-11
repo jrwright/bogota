@@ -15,6 +15,11 @@ def test_zeros():
     for pi in p:
         assert abs(pi - 0.5) < 1e-6
 
+    p = cognitive_hierarchy.quantal_lk(nfg, [1.0,0.0,0.0], 10.0)
+    for pi in p:
+        assert abs(pi - 0.5) < 1e-6
+
+
     alphas = cognitive_hierarchy.spike_poisson_alphas(1.0, 1.0, 3)
     assert alphas == [1.0, 0.0, 0.0, 0.0]
 

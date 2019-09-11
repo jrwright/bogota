@@ -8,6 +8,38 @@ from bogota.utils import proportionally_mix_profiles, normalize
 
 # ============================= Solution concepts =============================
 
+def quantal_lk(game, alphas, lam, l0_prediction=None):
+    """
+    Predictive model in which an agent of level `k` assumes that every other
+    agent has level `k-1`.
+
+    Args:
+      game: Game to compute a prediction for
+      alphas: Each agent is assumed to be level `k` with probability `alphas[k]`
+      lam: Precision for each agent's quantal response
+      l0_prediction: A `MixedStrategyProfile` representing the prediction of
+                     how a profile of level-0 agents would act.  Defaults to
+                     the uniform distribution.
+
+    Returns:
+      A predicted strategy profile for `game`.
+    """
+    lams = [lam] * (len(alphas) - 1)
+    return heterogeneous_qlk(game, alphas, lams, l0_prediction)
+
+
+def heterogeneous_qlk(game, alphas, lams, l0_prediction=None):
+    if l0_prediction is None:
+        l0_prediction = game.mixed_strategy_profile()
+    assert len(lams) == (len(alphas) - 1)
+
+    predictions = [l0_prediction]
+    for lam in lams:
+        lk = logit_br_all(predictions[-1], lam)
+        predictions.append(lk)
+
+    return proportionally_mix_profiles(alphas, predictions)
+
 @solver(['tau'],
         parameter_bounds={'tau':(0.0, None)})
 def poisson_ch(game, tau, l0_prediction=None, top_level=7, per_level=False):
