@@ -10,9 +10,9 @@ def test_game_array():
     nfg[2,2][0] = 6
     nfg[2,2][1] = 7
 
-    print nfg
+    print(nfg)
     A = game_array(nfg)
-    print A
+    print(A)
 
     assert A[0,0][0] == 1
     assert A[0,0][1] == 2

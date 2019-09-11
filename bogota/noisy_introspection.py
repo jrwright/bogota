@@ -1,7 +1,7 @@
 """
 Implement the noisy introspection model from [Goeree and Holt 2004].
 """
-from __future__ import absolute_import
+
 from numpy.linalg import norm
 from .solver import solver
 from .cognitive_hierarchy import logit_br_all
@@ -29,7 +29,7 @@ def noisy_introspection(game, lam0, tel, thresh=1e-6, return_steps=False, max_st
 
     def prediction(steps):
         p = game.mixed_strategy_profile()
-        for k in xrange(steps, -1, -1):
+        for k in range(steps, -1, -1):
             lam = (tel**(-k)) * lam0
             p = logit_br_all(p, lam)
         return p

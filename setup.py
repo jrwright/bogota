@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 # We maintain the version in a dedicated file
-execfile('bogota/version.py')
+exec(open('bogota/version.py').read())
 
 setup(
     name="bogota",
@@ -25,7 +25,7 @@ setup(
         'bogota':['2x2.agg', '2x2.nfg', 'defaults.cfg'],
         'bogota.data.pools':['*.nfg*', '*.agg']},
     classifiers=[
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

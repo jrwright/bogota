@@ -8,11 +8,11 @@ travellers_dilemma_high=read_game(dirname+'/travellers_dilemma_high.nfg')
 
 # Add back metadata that doesn't persist through the file format
 travellers_dilemma_low.title = "bogota.data.cn_goeree2001ten.travellers_dilemma_low"
-for i in xrange(300, 180-1, -1): # Descending order to avoid name collisions
+for i in range(300, 180-1, -1): # Descending order to avoid name collisions
     travellers_dilemma_low.players[0].strategies[i-180].label=str(i)
     travellers_dilemma_low.players[1].strategies[i-180].label=str(i)
 travellers_dilemma_high.title = "bogota.data.cn_goeree2001ten.travellers_dilemma_high"
-for i in xrange(300, 180-1, -1):
+for i in range(300, 180-1, -1):
     travellers_dilemma_high.players[0].strategies[i-180].label=str(i)
     travellers_dilemma_high.players[1].strategies[i-180].label=str(i)
 
