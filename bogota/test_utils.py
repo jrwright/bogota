@@ -1,4 +1,6 @@
+from itertools import product as cross_product
 import gambit
+import numpy.random
 from bogota.utils import zero_profile, near
 
 try:
@@ -54,4 +56,16 @@ def compare_nfgs(g1, g2):
             if u(g1, i, j) != u(g2, i, j):
                 return False, "payoffs differ at %d,%d" % (i,j)
     return True
+
+def random_nfg(max_players, max_actions, min_utility=0, max_utility=100, seed=None):
+    assert max_actions >= 2
+    r = numpy.random.RandomState(seed)
+    N = r.randint(max_players) + 1
+    dims = [r.randint(max_actions-1) + 2 for n in range(N)]
+    g = gambit.Game.new_table(dims)
+    for c in cross_product(*map(range, dims)):
+        for i in range(N):
+            u = r.randint(max_utility - min_utility) + min_utility
+            g[c][i] = u
+    return g
 
