@@ -9,7 +9,7 @@ Implement classes for representing data pools.
 
 from numpy import inf, array, log
 from numpy.random import RandomState
-import gambit
+from pygambit import Game
 from bogota.cache import _load_eqa, _load_qres
 from bogota.utils import normalize, make_profile, action_profiles
 
@@ -488,7 +488,7 @@ def make_original(normalized_game, original_filename):
     """
     global original_games
     assert len(normalized_game.title) > 0
-    g = gambit.Game.read_game(original_filename)
+    g = Game.read_game(original_filename)
     if normalized_game.title in original_games:
         assert repr(original_games[normalized_game.title]) == repr(g)
     else:
@@ -585,7 +585,7 @@ def read_and_cache_eqa(filename):
     Read and return a game from `filename`, caching its precomputed equilibria
     if they exist.
     """
-    g = gambit.Game.read_game(filename)
+    g = Game.read_game(filename)
     _load_eqa(g, filename + '.eqa')
     _load_qres(g, filename + '.qre')
     return g

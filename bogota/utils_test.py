@@ -1,8 +1,8 @@
-import gambit
+from pygambit import Game
 from bogota.utils import game_array, normalize, near, zero_profile
 
 def test_game_array():
-    nfg = gambit.Game.new_table([3,3])
+    nfg = Game.new_table([3,3])
     nfg[0,0][0] = 1
     nfg[0,0][1] = 2
     nfg[1,1][0] = 5
@@ -28,7 +28,7 @@ def test_normalize():
     assert near(normalize([-1,-2,-3]),
                 [2./3, 1./3, 0./3]), normalize([-1,-2,-3])
 
-    nfg = gambit.Game.new_table([3,3])
+    nfg = Game.new_table([3,3])
     p = nfg.mixed_strategy_profile()
     p[0] = 1
     p[1] = 2

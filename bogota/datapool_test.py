@@ -1,6 +1,6 @@
 from math import log
 from numpy import inf
-import gambit
+from pygambit import Game
 import bogota.datapool as datapool
 from bogota.test_utils import profile, constantly, near, nfg
 
@@ -141,7 +141,7 @@ def test_divide_folds():
 
 def test_divide_folds_gamewise_stratified(noassert=False):
     def new_game(s,n,d=0):
-        g = gambit.Game.new_table([2,2])
+        g = Game.new_table([2,2])
         g[0,0][0] = n
         g[0,0][1] = d
         g.title = "bogota.datapool_test.stratum_%d.g_%d" % (s,n)

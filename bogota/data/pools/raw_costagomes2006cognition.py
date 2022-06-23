@@ -1,6 +1,6 @@
 import decimal
-import gambit
-new_table = gambit.Game.new_table
+from pygambit import Game
+new_table = Game.new_table
 # from bogota.pool_utils import cents_normalize
 
 def cents_normalize(x,y):

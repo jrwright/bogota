@@ -1,5 +1,5 @@
 import tempfile
-import gambit
+from pygambit import Game
 from bogota.utils import zero_profile, near
 from posec.pyagg import AGG, FN_TYPE_SUM, FN_TYPE_WEIGHTED_MAX
 
@@ -55,7 +55,7 @@ def make_travellers_dilemma(min_claim=2, max_claim=100, penalty=2):
 
     with tempfile.NamedTemporaryFile(suffix='.agg', prefix="td_%d_%d_%d_" % (min_claim, max_claim, penalty), delete=True) as f:
         agg.saveToFile(f.name)
-        g = gambit.Game.read_game(f.name)
+        g = Game.read_game(f.name)
 
     # Add back metadata that doesn't persist through the file format
     g.title = "Traveller's Dilemma min=%d/max=%d/r=%d" % (min_claim, max_claim, penalty)

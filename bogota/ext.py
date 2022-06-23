@@ -3,8 +3,8 @@ Solver support for external solvers (QRE and Nash equilibrium).
 """
 
 from numpy import inf, linspace
-from gambit.qre import ExternalStrategicQREPathTracer
-from gambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
+from pygambit.qre import ExternalStrategicQREPathTracer
+from pygambit.nash import ExternalEnumPureSolver, ExternalLCPSolver, ExternalGlobalNewtonSolver
 from bogota.solver import solver, GridSolver
 from bogota.utils import proportionally_mix_profiles
 from bogota.cache import get_eqa, put_eqa, find_eqm_key, find_qre_key, get_qre, put_qres

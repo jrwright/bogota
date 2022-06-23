@@ -1,11 +1,11 @@
 import csv
 import glob
-import gambit
+from pygambit import Game
 from bogota.data import cn_all11, cn_costagomes2006cognition_bin10, cn_costagomes2008stated
 
 def sanity_check():
     for fname in glob.glob("*.nfg"):
-        g = gambit.Game.read_game(fname)
+        g = Game.read_game(fname)
         stem = g.title[g.title.rindex('.')+1:]
         assert fname == stem+'.nfg', (fname, stem)
 
@@ -71,7 +71,7 @@ def export_cgw08(pool=cn_costagomes2008stated, row_actions=['T', 'M', 'B'], col_
     for wp in sorted_profiles:
         name = wp.game.title[wp.game.title.rindex('.')+1:].replace("_", "-")[len("cn_"):]
         fname = name + ".nfg"
-        g = gambit.Game.new_table([n_row,n_col])
+        g = Game.new_table([n_row,n_col])
         for i in range(n_row):
             for j in range(n_col):
                 g[i,j][0] = int(float(wp.game[i,j][0])/norm)

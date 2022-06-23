@@ -1,17 +1,17 @@
 from itertools import product as cross_product
-import gambit
+from pygambit import Game
 import numpy.random
 from bogota.utils import zero_profile, near
 
 try:
     import os.path
     dirname=os.path.dirname(os.path.abspath(__file__))
-    nfg = gambit.Game.read_game(dirname+'/2x2.nfg')
-    agg = gambit.Game.read_game(dirname+'/2x2.agg')
+    nfg = Game.read_game(dirname+'/2x2.nfg')
+    agg = Game.read_game(dirname+'/2x2.agg')
 except NameError:
     from warnings import warn
     warn("test_utils loaded instead of imported; `nfg` will be a dummy table, `agg` will not be created.")
-    nfg = gambit.new_table([2,2])
+    nfg = Game.new_table([2,2])
 
 def leftmost(game, eps=0.3):
     """
@@ -62,7 +62,7 @@ def random_nfg(max_players, max_actions, min_utility=0, max_utility=100, seed=No
     r = numpy.random.RandomState(seed)
     N = r.randint(max_players) + 1
     dims = [r.randint(max_actions-1) + 2 for n in range(N)]
-    g = gambit.Game.new_table(dims)
+    g = Game.new_table(dims)
     for c in cross_product(*map(range, dims)):
         for i in range(N):
             u = r.randint(max_utility - min_utility) + min_utility

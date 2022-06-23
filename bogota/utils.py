@@ -1,7 +1,7 @@
 """
 Miscellaneous utilities.
 """
-import gambit
+from pygambit import Game
 from numbers import Number
 import sys
 import numpy as np
@@ -220,7 +220,7 @@ def copy_table(old_game):
     """
     Return a new game with the same payoffs as 'old_game'.
     """
-    g = gambit.Game.new_table([len(pl.strategies) for pl in old_game.players])
+    g = Game.new_table([len(pl.strategies) for pl in old_game.players])
     for ix in fast_contingencies(old_game):
         for plx in range(len(g.players)):
             g[ix][plx] = old_game[ix][plx]

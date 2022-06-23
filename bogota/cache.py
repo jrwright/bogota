@@ -1,4 +1,4 @@
-from gambit.nash import ExternalSolver
+from pygambit.nash import ExternalSolver
 
 # ============================== Nash equilibria ==============================
 
